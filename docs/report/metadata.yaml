@@ -1,0 +1,47 @@
+---
+title: "KubeClassify"
+subtitle: "An Image Classification Pipeline on Kubernetes — Milestone 1: Architecture"
+author: "[YOUR FULL NAME]"
+date: "October 5, 2026"
+abstract: |
+  KubeClassify is a four-service image classification pipeline deployed on Kubernetes. A user
+  uploads an image to a single public endpoint and receives a predicted label with a confidence
+  score; the original image, the preprocessed image, and the prediction are persisted and remain
+  retrievable by identifier. This document is the Milestone 1 design: it fixes the pod and
+  container decomposition, the Service types and the one external entrypoint, the scaling target,
+  the inter-service API contracts, the persistence layout, and the risk and test plan — before
+  any implementation begins. Every performance figure in this document is a design budget, not a
+  measured result.
+documentclass: article
+geometry: margin=1in
+fontsize: 10pt
+mainfont: "Liberation Serif"
+sansfont: "Liberation Sans"
+monofont: "Liberation Mono"
+monofontoptions:
+  - Scale=0.84
+linestretch: 1.0
+colorlinks: true
+linkcolor: black
+urlcolor: blue
+toccolor: black
+toc: true
+toc-depth: 1
+numbersections: true
+secnumdepth: 2
+header-includes: |
+  \usepackage{etoolbox}
+  \usepackage{float}
+  \usepackage{placeins}
+  \floatplacement{figure}{tp}
+  \renewcommand{\topfraction}{0.85}
+  \renewcommand{\floatpagefraction}{0.62}
+  \renewcommand{\textfraction}{0.12}
+  \usepackage{caption}
+  \captionsetup{font=small,labelfont=bf,skip=4pt}
+  \AtBeginEnvironment{longtable}{\footnotesize}
+  \AtBeginEnvironment{tabular}{\footnotesize}
+  \setlength{\parskip}{0.3em}
+  \setlength{\emergencystretch}{4em}
+  \raggedbottom
+---

@@ -1,0 +1,40 @@
+flowchart TB
+    CL(["<b>External client</b> &nbsp;·&nbsp; outside the cluster"])
+
+    subgraph NS["namespace: imgpipe &nbsp;—&nbsp; single-node Minikube"]
+        direction TB
+
+        subgraph PGW["Pod: gateway (1 replica)"]
+            CGW["gateway<br/><i>FastAPI :8080</i>"]
+        end
+
+        subgraph PPP["Pod: preprocess (2 replicas)"]
+            CPP["preprocess<br/><i>FastAPI :8081</i>"]
+        end
+
+        subgraph PINF["Pod: inference (3 replicas) — MULTI-CONTAINER"]
+            CINF["<b>container 1</b><br/>inference<br/><i>ONNX · :8082</i>"]
+            CSD["<b>container 2</b><br/>metrics-exporter<br/><i>:9100</i>"]
+        end
+
+        subgraph PST["Pod: storage (1 replica)"]
+            CST["storage<br/><i>FastAPI :8083</i>"]
+        end
+
+        PVC[("<b>PVC</b> storage-data-pvc<br/>2 Gi · ReadWriteOnce · /data")]
+    end
+
+    CL ==>|"<b>gateway-svc</b><br/><i>NodePort</i> 30080 → 8080<br/>the only external surface"| CGW
+    CGW ==>|"<b>preprocess-svc</b><br/><i>ClusterIP</i> :8081"| CPP
+    CGW ==>|"<b>inference-svc</b><br/><i>ClusterIP</i> :8082 · :9100"| CINF
+    CGW ==>|"<b>storage-svc</b><br/><i>ClusterIP</i> :8083"| CST
+    CST ==> PVC
+
+    classDef ext fill:#ededed,stroke:#555555,stroke-width:1.5px
+    classDef ctr fill:#ffffff,stroke:#333333,stroke-width:1.5px
+    classDef vol fill:#f4f1e4,stroke:#6f6230,stroke-width:1.5px,stroke-dasharray:5 3
+    class CL ext
+    class CGW,CPP,CINF,CSD,CST ctr
+    class PVC vol
+    style NS fill:#fafafa,stroke:#999999,stroke-dasharray:6 4
+    style PINF fill:#f3f6fa,stroke:#2d4a7a,stroke-width:2px

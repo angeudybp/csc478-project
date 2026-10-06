@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph POD["Pod: inference &nbsp;—&nbsp; one replica of three"]
+        direction LR
+        C1["<b>container 1 — inference</b><br/>FastAPI + ONNX Runtime<br/>MobileNetV2<br/><i>listens on :8082</i>"]
+        V["<b>emptyDir volume</b><br/>/var/log/app/<br/>requests.jsonl"]
+        C2["<b>container 2 — metrics-exporter</b><br/>tail · aggregate<br/>count · errors · p50 · p95<br/><i>serves :9100</i>"]
+        C1 -->|"append one JSON line per request:<br/>latency, model version, outcome"| V
+        V -->|"tail &amp; aggregate"| C2
+    end
+    classDef ctr fill:#ffffff,stroke:#333333,stroke-width:1.5px
+    classDef vol fill:#f4f1e4,stroke:#6f6230,stroke-width:1.5px,stroke-dasharray:5 3
+    class C1,C2 ctr
+    class V vol
+    style POD fill:#f3f6fa,stroke:#2d4a7a,stroke-width:2px

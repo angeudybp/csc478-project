@@ -1,0 +1,114 @@
+Example Project Idea
+While students are free to select their own project ideas, these selections need to reflect the complexity of the pipeline. To that end, we have the following template project idea: Image Classification Pipeline on Kubernetes
+
+Project Overview
+Design and deploy a simplified image classification pipeline on Kubernetes. The system demonstrates multi-pod orchestration and possibly multi-container pods using sidecars. At minimum, include:
+
+Preprocessing Service (resizes/normalizes images)
+Inference Service (serves a pre-trained model)
+Storage Service (persists original/processed images and results)
+It is possible to have in-depth projects that veer away from the multi-pod/multi-container requirements. All project selections need to be approved by the professor.
+
+Milestone 1: Architecture (Design Only)
+Goal
+Define the pipeline architecture, and
+Make clear technical choices before building.
+Requirements
+Develop use cases and workflow:
+Write 2–3 user stories and draw data-flow diagram.
+Example:
+User story: As a user, I upload an image and retrieve the predicted label
+Data-flow diagram: showing upload → preprocessing → inference → storage → retrieval.
+Design K8s architecture:
+Decide which app stages are separate Pods and where to use a multi-container Pod (e.g., inference + metrics sidecar).
+Identify Service types (ClusterIP for internal, NodePort/LoadBalancer for external).
+Decide which component will be scaled later (likely inference).
+Persistence Plan: What needs to be stored? Where? Sketch PVC/PV needs and directory layout.
+Risk & Test Plan:
+List top risks (e.g., model size, timeouts) and a basic test matrix (happy path, large image, invalid image).
+Deliverables
+Technical report:
+PDF format, 1-inch margin, 10-pts font size.
+Content:
+Front matter (names, title)
+Overview (marketing!)
+3–4 page architecture brief, data-flow diagram, and descriptions of (if available)
+Component list (Pods, optional sidecars),
+Service choices, scaling target
+API contracts (endpoints, payload examples)
+Persistence plan + initial test plan
+Team charter (roles, meeting cadence, Definition of Done)
+Milestone 2: Core Implementation
+Goal
+Stand up the pipeline with proper service discovery and resilience. No persistence yet.
+
+What to build
+Pods & Services:
+Create Pods (or directly Deployments)
+Example: Preprocessing, Inference, Storage (temporary/ephemeral for now).
+Add Services: ClusterIP for internal, and one external (NodePort/LoadBalancer).
+Deployments & Scaling:
+Convert to Deployments for self-healing.
+Example: Scale Inference to ≥3 replicas.
+Manually delete a Pod; verify automatic recreation.
+Multi-Container Pod:
+Add a sidecar (e.g., metrics exporter or access logger) to one Deployment.
+Basic tests:
+Example: Demonstrate an upload flowing through preprocessing → inference → storage endpoint (non-persistent).
+Deliverables
+Project repository submission that includes: (repo + brief):
+deployments/ and services/ YAMLs (clearly named)
+Short README with:
+kubectl apply -f instructions
+How to access the external Service
+Evidence of scaling & self-healing (screenshots/commands: kubectl get deploy,pods,svc, kubectl scale, pod deletion + recreate)
+Sidecar rationale (2–3 sentences)
+Milestone 3: Persistence & Full Integration (Demo)
+Goal
+Add persistent storage, verify data survives restarts, and deliver a clean demo.
+
+Adding final components
+Storage & Persistence:
+Create PV/PVC for the Storage Service (or for a small DB if you choose).
+Example: Persist uploaded images, processed outputs, and prediction results (e.g., JSON metadata).
+Verification:
+Restart/redeploy Pods and show persisted data remains accessible.
+Testing:
+Example: Include a small script or curl commands to demonstrate upload → preprocessing → inference → storage → retrieval.
+Final operational consideration:
+Health/readiness probes where appropriate.
+Resource requests/limits for inference pods (lightweight, realistic).
+Basic logs/metrics evidence.
+Deliverables
+Update project repository with manifests for storage/ YAMLs (PV/PVC, or StatefulSet if you go that route)
+Final end-to-end demo video (≤5 min)
+Final technical report
+PDF format, 1-inch margin, 10-pts font size.
+Content:
+Front matter (names, title)
+Overview (marketing!)
+4–5 page (undergraduates) or 6-7 page (graduate students)
+Architecture recap, data-flow diagram (updates if changed)
+Pod grouping & any sidecar choices
+Services and routing
+Scaling/self-healing results
+Persistence design & verification steps
+Known limitations + next steps
+Constraints & Hints
+Prefer ClusterIP for internal comms; expose exactly one external entrypoint unless justified.
+Keep input data small and predictable; pin versions.
+If using AI-based services, start with a tiny pre-trained model (e.g., MobileNet-v2 or even a mock classifier) to focus on orchestration, not training.
+Test early with kubectl port-forward and curl before wiring the full flow.
+For grading reproducibility, ensure kubectl delete -f . && kubectl apply -f . cleanly reprovisions the stack.
+CAREER:
+Present the project as an engineering case study
+Employers learn more from a small, well-evidenced system than from a large project that cannot be explained. Structure the final report and demo as a case study:
+
+State the user or operational problem.
+Identify your individual contribution.
+Show the architecture and one important tradeoff.
+Demonstrate deployment, failure recovery, and persistence with evidence.
+Explain one limitation and the next production improvement.
+The official Ancestry Kubernetes case study describes a similar incremental approach: the company selected an important but manageable service as a pilot, established a repeatable process, and then used the results to support broader adoption.
+
+Keep manifests, test commands, diagrams, and measured results in the project repository. Do not claim scale, availability, or performance that you did not actually test.

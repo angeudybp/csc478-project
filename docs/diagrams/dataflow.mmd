@@ -1,0 +1,26 @@
+flowchart LR
+    U(["<b>User</b><br/>curl / browser"])
+
+    subgraph K8S["Kubernetes cluster &nbsp;·&nbsp; namespace: imgpipe"]
+        direction TB
+        GW["<b>gateway</b><br/>validate &amp; orchestrate<br/><i>:8080</i>"]
+        PP["<b>preprocess</b><br/>decode · EXIF strip<br/>resize 224×224<br/><i>:8081</i>"]
+        INF["<b>inference</b><br/>MobileNetV2 · ONNX<br/>top-3 labels<br/><i>:8082</i>"]
+        ST["<b>storage</b><br/>sole owner of state<br/><i>:8083</i>"]
+        PVC[("<b>PersistentVolume</b><br/>/data · 2 Gi · RWO<br/>originals · processed · results")]
+    end
+
+    U <==>|"<b>①</b> POST /api/v1/images &nbsp;(max 8 MB)<br/><b>⑤</b> 200 {imageId, label, confidence}<br/><i>via NodePort 30080</i>"| GW
+    GW <==>|"<b>②</b> raw bytes → 224×224 JPEG"| PP
+    GW <==>|"<b>③</b> processed image → labels + scores"| INF
+    GW <==>|"<b>④</b> PUT original, processed, result JSON"| ST
+    ST <==> PVC
+    U -.->|"<b>Ⓡ</b> read path: GET /results/{id}<br/>GET /images/{id}?variant="| GW
+
+    classDef ext fill:#ededed,stroke:#555555,stroke-width:1.5px
+    classDef svc fill:#ffffff,stroke:#333333,stroke-width:1.5px
+    classDef vol fill:#f4f1e4,stroke:#6f6230,stroke-width:1.5px,stroke-dasharray:5 3
+    class U ext
+    class GW,PP,INF,ST svc
+    class PVC vol
+    style K8S fill:#fafafa,stroke:#999999,stroke-dasharray:6 4

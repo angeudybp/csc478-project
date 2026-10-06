@@ -1,0 +1,25 @@
+# LaTeX build intermediates
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Note: docs/report/*.pdf and docs/diagrams/out/*.pdf ARE tracked on purpose --
+# the submitted artifact should be pinned to the commit that produced it.
