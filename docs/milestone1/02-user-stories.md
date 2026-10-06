@@ -58,4 +58,4 @@ request that fans through three internal services before responding. The read pa
 only the gateway and the storage service. The storage service is the sole holder of persistent
 state, and the sole component that is never exposed outside the cluster.
 
-![**KubeClassify data flow.** The write path (solid, numbered) runs upload → preprocess → inference → persist → response. The read path (dashed) serves retrieval from the persistent volume. Only the gateway is reachable from outside the cluster.](docs/diagrams/out/dataflow.pdf){width=100%}
+![**KubeBalancer data flow.** The write path (solid, numbered) runs upload → preprocess → inference → persist → response. The read path (dashed) serves retrieval from the persistent volume. Only the gateway is reachable from outside the cluster.](docs/diagrams/out/dataflow.pdf){width=100%}

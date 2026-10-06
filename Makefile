@@ -1,4 +1,4 @@
-# KubeClassify --- document build
+# KubeBalancer --- document build
 # Requires: pandoc (~/.local/bin), xelatex, and Node/npm.
 #
 # The diagram renderer is pinned by package-lock.json and installed locally with

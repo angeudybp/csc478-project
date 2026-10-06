@@ -129,10 +129,10 @@ be mistaken for a real prediction.
 Prometheus text format, per replica:
 
 ```
-kubeclassify_inference_requests_total 143
-kubeclassify_inference_errors_total 2
-kubeclassify_inference_latency_ms{quantile="0.5"} 118
-kubeclassify_inference_latency_ms{quantile="0.95"} 186
+kubebalancer_inference_requests_total 143
+kubebalancer_inference_errors_total 2
+kubebalancer_inference_latency_ms{quantile="0.5"} 118
+kubebalancer_inference_latency_ms{quantile="0.95"} 186
 ```
 
 ## Storage (internal)

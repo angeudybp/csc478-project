@@ -9,9 +9,9 @@ model is still loading, when someone uploads a 40-megapixel photograph or a text
 `.jpg`, or when the process holding every uploaded image is killed? None of those are modelling
 problems. They are orchestration problems, and they are what this project is about.
 
-## What KubeClassify is
+## What KubeBalancer is
 
-KubeClassify is a small, honest, fully-observable image classification service running on
+KubeBalancer is a small, honest, fully-observable image classification service running on
 Kubernetes. A user sends an image to one public endpoint and gets back a label and a confidence
 score. Behind that endpoint, four independently deployable services divide the work: a **gateway**
 that validates and orchestrates, a **preprocessor** that normalizes images into model input, an

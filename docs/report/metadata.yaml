@@ -1,10 +1,10 @@
 ---
-title: "KubeClassify"
+title: "KubeBalancer"
 subtitle: "An Image Classification Pipeline on Kubernetes — Milestone 1: Architecture"
 author: "[YOUR FULL NAME]"
 date: "October 5, 2026"
 abstract: |
-  KubeClassify is a four-service image classification pipeline deployed on Kubernetes. A user
+  KubeBalancer is a four-service image classification pipeline deployed on Kubernetes. A user
   uploads an image to a single public endpoint and receives a predicted label with a confidence
   score; the original image, the preprocessed image, and the prediction are persisted and remain
   retrievable by identifier. This document is the Milestone 1 design: it fixes the pod and

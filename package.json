@@ -1,8 +1,8 @@
 {
-  "name": "kubeclassify-docs",
+  "name": "kubebalancer-docs",
   "version": "1.0.0",
   "private": true,
-  "description": "Pinned diagram toolchain for the KubeClassify report. The exact mermaid-cli version is locked so `make diagrams` cannot execute an unreviewed upstream release at build time.",
+  "description": "Pinned diagram toolchain for the KubeBalancer report. The exact mermaid-cli version is locked so `make diagrams` cannot execute an unreviewed upstream release at build time.",
   "license": "UNLICENSED",
   "scripts": {
     "diagrams": "make diagrams"

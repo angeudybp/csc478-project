@@ -166,7 +166,7 @@ this project is meant to spend on Kubernetes orchestration itself. The synchrono
 the failure modes visible and bounded instead: the timeout budget in Table 3 is the entire
 back-pressure mechanism, and when inference is unavailable the gateway fails fast with a 503.
 
-The honest cost is stated plainly: **KubeClassify has no back-pressure beyond its timeouts.**
+The honest cost is stated plainly: **KubeBalancer has no back-pressure beyond its timeouts.**
 Under sustained concurrent load past the inference tier's capacity, requests will time out rather
 than queue. Moving to a queue-backed design is the first item in the Milestone 3 next-steps
 section.
@@ -181,7 +181,7 @@ section.
   `OMP_NUM_THREADS=1`: ONNX Runtime otherwise sizes its thread pool to the host core count, and
   three full-width pools on one node contend badly. Other services request 64 Mi / 50 m, limited to
   256 Mi / 500 m.
-- **Images.** Explicit version tags (`kubeclassify/inference:0.1.0`), never `latest`; built locally,
+- **Images.** Explicit version tags (`kubebalancer/inference:0.1.0`), never `latest`; built locally,
   loaded with `minikube image load`, and `imagePullPolicy: IfNotPresent` so the cluster never
   reaches for a registry that has no copy. MobileNetV2 weights are baked into the image rather than
   fetched by an init container, removing network dependency from pod startup.
@@ -190,7 +190,7 @@ section.
 
 All objects live in a dedicated `imgpipe` namespace, which makes teardown unambiguous. Every
 object carries the standard recommended labels (`app.kubernetes.io/name`, `/component`,
-`/part-of: kubeclassify`, `/version`), so `kubectl` selectors and Service definitions stay
+`/part-of: kubebalancer`, `/version`), so `kubectl` selectors and Service definitions stay
 consistent.
 
 Manifests are numerically prefixed so `kubectl apply -f .` applies them in dependency order —

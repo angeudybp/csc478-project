@@ -1,4 +1,4 @@
-# KubeClassify --- Image Classification Pipeline on Kubernetes
+# KubeBalancer --- Image Classification Pipeline on Kubernetes
 
 CSC 478 course project. A four-service image classification pipeline deployed on a single-node
 Minikube cluster: upload an image to one public endpoint, get back a predicted label, and retrieve
