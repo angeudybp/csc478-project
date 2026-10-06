@@ -1,7 +1,7 @@
 ---
 title: "KubeBalancer"
 subtitle: "An Image Classification Pipeline on Kubernetes — Milestone 1: Architecture"
-author: "[YOUR FULL NAME]"
+author: "Angeudy Brisita Perez"
 date: "October 5, 2026"
 abstract: |
   KubeBalancer is a four-service image classification pipeline deployed on Kubernetes. A user

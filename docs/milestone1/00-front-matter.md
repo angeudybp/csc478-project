@@ -7,7 +7,7 @@ Instructor
 :   [Instructor Name]
 
 Student
-:   [Your Full Name] — solo project
+:   Angeudy Brisita Perez — solo project
 
 Milestone
 :   1 of 3 — Architecture (Design Only)
