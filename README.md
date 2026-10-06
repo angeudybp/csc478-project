@@ -28,10 +28,22 @@ make report      # renders diagrams, then the PDF -> docs/report/Milestone1-Repo
 make diagrams    # diagrams only
 make check       # verify page count and fonts
 make clean       # remove generated PDFs
+make distclean   # also remove node_modules
 ```
 
-Requirements: `pandoc`, `xelatex` (TeX Live), and `npx` (mermaid-cli is fetched on demand).
-If `pandoc` is not on `PATH`, the Makefile falls back to `~/.local/bin/pandoc`.
+Requirements: `pandoc`, `xelatex` (TeX Live), and Node/npm. If `pandoc` is not on `PATH`,
+the Makefile falls back to `~/.local/bin/pandoc`.
+
+The diagram renderer (`@mermaid-js/mermaid-cli`) is **pinned to an exact version** in
+`package.json` and locked with integrity hashes in `package-lock.json`. `make` installs it with
+`npm ci`, so the build never downloads and executes an unreviewed package version. Upgrading is a
+deliberate, reviewable change to the lockfile.
+
+Rendered diagrams are committed under `docs/diagrams/out/`, so building the report does not
+require re-rendering them. If you do regenerate diagrams on a fresh machine, mermaid-cli needs a
+Chromium binary; npm defers puppeteer's install script by default, so run
+`npm install-scripts approve puppeteer && npm rebuild puppeteer` once (or point
+`PUPPETEER_EXECUTABLE_PATH` at an existing Chrome).
 
 ## Layout
 
