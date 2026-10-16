@@ -59,13 +59,13 @@ those divergences being recorded as they happen rather than reconstructed from m
 
 ## Milestone schedule
 
-| Milestone | Scope | Target |
-|:-----------|:---------------------------------------------|:-------------|
-| M1 | Architecture and design (this document) | [M1 due date] |
-| M2 | Four Deployments, four Services, sidecar, scaling and self-healing evidence; no persistence | [M2 due date] |
-| M3 | PV/PVC, persistence verification, probes, resource limits, demo video, final report | [M3 due date] |
+| Milestone | Scope |
+|:-----------|:---------------------------------------------------------|
+| M1 | Architecture and design (this document) |
+| M2 | Four Deployments, four Services, sidecar, scaling and self-healing evidence; no persistence |
+| M3 | PV/PVC, persistence verification, probes, resource limits, demo video, final report |
 
-: **Milestone schedule.** Dates are filled in from the course calendar.
+: **Milestone schedule.** Each milestone's scope, in delivery order.
 
 Within M2 the order is deliberate: manifests with the mock classifier first, so that a working
 end-to-end pipeline exists as early as possible, then the real model, then the sidecar, then the
