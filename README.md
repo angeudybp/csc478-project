@@ -1,8 +1,8 @@
 # KubeBalancer --- Image Classification Pipeline on Kubernetes
 
-CSC 478 course project. A four-service image classification pipeline deployed on a single-node
-Minikube cluster: upload an image to one public endpoint, get back a predicted label, and retrieve
-the original image, the processed image, and the prediction afterwards by identifier.
+CSC 478 (Cloud Engineering) course project. A four-service image classification pipeline deployed
+on a single-node Minikube cluster: upload an image to one public endpoint, get back a predicted
+label, and retrieve the original image, the processed image, and the prediction afterwards by ID.
 
 ## Status
 
@@ -15,43 +15,18 @@ the original image, the processed image, and the prediction afterwards by identi
 ## Architecture at a glance
 
 Four Deployments in the `imgpipe` namespace. `gateway` is the single external entrypoint
-(NodePort 30080) and orchestrates the pipeline; `preprocess` normalizes images to 224x224;
-`inference` runs MobileNetV2 via ONNX Runtime and is the scaling target at 3 replicas, carrying a
-metrics-exporter sidecar in the same pod; `storage` owns the only PersistentVolumeClaim.
+(NodePort 30080) and calls the other services in order; `preprocess` resizes images to 224x224;
+`inference` runs MobileNetV2 with ONNX Runtime and is scaled to 3 replicas, each with a
+metrics-exporter sidecar; `storage` owns the only PersistentVolumeClaim.
 
-Full design, diagrams, and API contracts: `docs/report/Milestone1-Report.pdf`.
-
-## Building the report
-
-```bash
-make report      # renders diagrams, then the PDF -> docs/report/Milestone1-Report.pdf
-make diagrams    # diagrams only
-make check       # verify page count and fonts
-make clean       # remove generated PDFs
-make distclean   # also remove node_modules
-```
-
-Requirements: `pandoc`, `xelatex` (TeX Live), and Node/npm. If `pandoc` is not on `PATH`,
-the Makefile falls back to `~/.local/bin/pandoc`.
-
-The diagram renderer (`@mermaid-js/mermaid-cli`) is **pinned to an exact version** in
-`package.json` and locked with integrity hashes in `package-lock.json`. `make` installs it with
-`npm ci`, so the build never downloads and executes an unreviewed package version. Upgrading is a
-deliberate, reviewable change to the lockfile.
-
-Rendered diagrams are committed under `docs/diagrams/out/`, so building the report does not
-require re-rendering them. If you do regenerate diagrams on a fresh machine, mermaid-cli needs a
-Chromium binary; npm defers puppeteer's install script by default, so run
-`npm install-scripts approve puppeteer && npm rebuild puppeteer` once (or point
-`PUPPETEER_EXECUTABLE_PATH` at an existing Chrome).
-
-## Layout
+## Repository layout
 
 ```
-docs/milestone1/   report sections, numbered -- pandoc concatenates them in filename order
-docs/diagrams/     Mermaid sources (.mmd) and rendered PDFs in out/
-docs/report/       pandoc metadata (margins, font size) and the built PDF
+docs/report/       Milestone 1 report: Word source (.docx) and submitted PDF
+docs/diagrams/     Mermaid diagram sources (.mmd) and rendered diagrams in out/
 ```
+
+The Word document is the editable source of the report; the PDF is exported from it.
 
 `deployments/`, `services/`, `storage/`, and `services-src/` arrive in Milestone 2; their intended
-layout is specified in the Milestone 1 report.
+layout is described in the Milestone 1 report (section 3.8).
