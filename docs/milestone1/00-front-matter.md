@@ -1,10 +1,10 @@
 # Document Information {-}
 
 Course
-:   CSC 478 — [Course Title]
+:   CSC 478 — Cloud Engineering
 
 Instructor
-:   [Instructor Name]
+:   Dr. Linh Ngo
 
 Student
 :   Angeudy Brisita Perez — solo project
@@ -16,7 +16,7 @@ Submitted
 :   October 5, 2026
 
 Repository
-:   [repository URL]
+:   <https://github.com/angeudybp/csc478-project>
 
 Revision
 :   1.0
