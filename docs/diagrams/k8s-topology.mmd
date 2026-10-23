@@ -1,7 +1,7 @@
 flowchart TB
     CL(["<b>External client</b> &nbsp;·&nbsp; outside the cluster"])
 
-    subgraph NS["namespace: imgpipe &nbsp;—&nbsp; single-node Minikube"]
+    subgraph NS["namespace: imgpipe &nbsp;—&nbsp; k3s on FABRIC (1 server + 2 agents)"]
         direction TB
 
         subgraph PGW["Pod: gateway (1 replica)"]

@@ -7,8 +7,9 @@ It is deployed on a 3-node k3s cluster on [FABRIC](https://portal.fabric-testbed
 developed locally on Minikube.
 
 > **Name:** the project is **KubeVision**. The Milestone 1 report was submitted under the earlier
-> name KubeBalancer. It has since been revised (October 23, 2026) to use the new name and an overview
-> that matches the classification premise; the design it describes is unchanged.
+> name KubeBalancer. It has since been revised (October 23, 2026) to use the new name, an overview
+> that matches the classification premise, and k3s on FABRIC as the deployment target; the
+> architecture it describes is otherwise unchanged.
 
 ## Status
 
@@ -208,6 +209,9 @@ Service is spreading load, while the model server itself stays free of metrics c
 Uploads made by the scripts carry `source=test`, so the web UI lists only real uploads.
 
 ## Deviations from the Milestone 1 design
+
+The M1 column is the design as originally submitted on October 5, 2026; the revised report already
+reflects the first two rows and the name change.
 
 | M1 design | M2 implementation | Why |
 |---|---|---|
