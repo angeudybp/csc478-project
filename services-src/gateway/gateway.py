@@ -25,6 +25,9 @@ STORAGE_URL = os.getenv("STORAGE_URL", "http://storage-svc:8083")
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 MULTIPART_OVERHEAD = 64 * 1024
 TOP_K = 3
+# Connecting inside the cluster takes milliseconds. A Service with no ready endpoints may drop the
+# connection attempt instead of refusing it, so cap the connect phase to fail fast with a 503.
+CONNECT_TIMEOUT = 2.0
 
 # httpx logs every outbound request at INFO; the request-ID middleware already logs each hop.
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -52,7 +55,9 @@ def new_image_id() -> str:
 
 @asynccontextmanager
 async def lifespan(app):
-    app.state.client = httpx.AsyncClient()
+    # No keep-alive: kube-proxy balances per *connection*, so a pooled connection would pin every
+    # request to one replica. A fresh connection per call lets the Service spread the load.
+    app.state.client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=0))
     yield
     await app.state.client.aclose()
 
@@ -70,7 +75,8 @@ async def call(request: Request, service: str, hop: tuple[float, bool], method: 
     client: httpx.AsyncClient = request.app.state.client
     for attempt in (1, 2):
         try:
-            response = await client.request(method, url, headers=headers, timeout=timeout, **kwargs)
+            response = await client.request(method, url, headers=headers, **kwargs,
+                                            timeout=httpx.Timeout(timeout, connect=CONNECT_TIMEOUT))
         except (httpx.ConnectError, httpx.ConnectTimeout):
             # No ready endpoints behind the Service (e.g. scaled to 0) or pod just went away.
             if retry and attempt == 1:
