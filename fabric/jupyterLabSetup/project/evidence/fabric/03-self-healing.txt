@@ -1,0 +1,60 @@
+# Deleting an inference pod while traffic flows (T9)
+# cluster: fabric   captured: 2026-10-23T21:24:32Z
+
+Background traffic: one upload every 0.25 s while the pod is deleted and replaced.
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE    NOMINATED NODE   READINESS GATES
+inference-89c6d59d5-6hgdm   2/2     Running   0          5s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-l8fgt   2/2     Running   0          5s    10.42.2.10   node2   <none>           <none>
+inference-89c6d59d5-t7g9s   2/2     Running   0          10m   10.42.0.3    node1   <none>           <none>
+
+$ kubectl -n imgpipe delete pod inference-89c6d59d5-6hgdm --wait=false
+pod "inference-89c6d59d5-6hgdm" deleted from imgpipe namespace
+
+Watching the ReplicaSet replace it (20 s):
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide --watch
+NAME                        READY   STATUS              RESTARTS   AGE   IP           NODE    NOMINATED NODE   READINESS GATES
+inference-89c6d59d5-6hgdm   2/2     Terminating         0          5s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-l8fgt   2/2     Running             0          5s    10.42.2.10   node2   <none>           <none>
+inference-89c6d59d5-rz27n   0/2     ContainerCreating   0          0s    <none>       node3   <none>           <none>
+inference-89c6d59d5-t7g9s   2/2     Running             0          10m   10.42.0.3    node1   <none>           <none>
+inference-89c6d59d5-rz27n   0/2     ContainerCreating   0          0s    <none>       node3   <none>           <none>
+inference-89c6d59d5-rz27n   0/2     ContainerCreating   0          0s    <none>       node3   <none>           <none>
+inference-89c6d59d5-6hgdm   2/2     Terminating         0          5s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-rz27n   0/2     Running             0          0s    10.42.1.19   node3   <none>           <none>
+inference-89c6d59d5-6hgdm   2/2     Terminating         0          6s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-6hgdm   0/2     Completed           0          6s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-rz27n   1/2     Running             0          1s    10.42.1.19   node3   <none>           <none>
+inference-89c6d59d5-6hgdm   0/2     Completed           0          6s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-6hgdm   0/2     Completed           0          6s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-rz27n   2/2     Running             0          1s    10.42.1.19   node3   <none>           <none>
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=120s
+deployment "inference" successfully rolled out
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE    NOMINATED NODE   READINESS GATES
+inference-89c6d59d5-l8fgt   2/2     Running   0          25s   10.42.2.10   node2   <none>           <none>
+inference-89c6d59d5-rz27n   2/2     Running   0          20s   10.42.1.19   node3   <none>           <none>
+inference-89c6d59d5-t7g9s   2/2     Running   0          11m   10.42.0.3    node1   <none>           <none>
+
+Uploads during the deletion, by HTTP status:
+     75 200
+
+$ kubectl -n imgpipe get events --field-selector reason=SuccessfulCreate --sort-by=.lastTimestamp
+LAST SEEN   TYPE     REASON             OBJECT                           MESSAGE
+11m         Normal   SuccessfulCreate   replicaset/preprocess-d5bd6c78   Created pod: preprocess-d5bd6c78-v76tz
+11m         Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-9j8hn
+11m         Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-t7g9s
+11m         Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-cdznd
+11m         Normal   SuccessfulCreate   replicaset/gateway-fcd766774     Created pod: gateway-fcd766774-pdrgn
+11m         Normal   SuccessfulCreate   replicaset/storage-54b8d559c8    Created pod: storage-54b8d559c8-xrd5z
+11m         Normal   SuccessfulCreate   replicaset/preprocess-d5bd6c78   Created pod: preprocess-d5bd6c78-pnsxb
+4m17s       Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-d7srr
+4m17s       Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-wx8c7
+2m33s       Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-mxjgh
+25s         Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-6hgdm
+25s         Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-l8fgt
+20s         Normal   SuccessfulCreate   replicaset/inference-89c6d59d5   Created pod: inference-89c6d59d5-rz27n

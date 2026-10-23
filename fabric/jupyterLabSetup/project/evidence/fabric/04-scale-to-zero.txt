@@ -1,0 +1,26 @@
+# Inference scaled to 0: the gateway fails fast with 503, then recovers (T8)
+# cluster: fabric   captured: 2026-10-23T21:24:55Z
+
+$ kubectl -n imgpipe scale deploy/inference --replicas=0
+deployment.apps/inference scaled
+
+$ kubectl -n imgpipe wait --for=delete pod -l app.kubernetes.io/component=inference --timeout=90s
+pod/inference-89c6d59d5-l8fgt condition met
+pod/inference-89c6d59d5-rz27n condition met
+pod/inference-89c6d59d5-t7g9s condition met
+
+$ curl -F file=@sample.png http://192.168.1.1:30080/api/v1/images
+{"error":{"code":"UPSTREAM_UNAVAILABLE","message":"inference is unavailable"},"requestId":"a13c1878"}
+HTTP 503 in 0.012060 s
+
+$ kubectl -n imgpipe scale deploy/inference --replicas=3
+deployment.apps/inference scaled
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=120s
+Waiting for deployment "inference" rollout to finish: 0 of 3 updated replicas are available...
+Waiting for deployment "inference" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "inference" rollout to finish: 2 of 3 updated replicas are available...
+deployment "inference" successfully rolled out
+
+$ curl -F file=@sample.png http://192.168.1.1:30080/api/v1/images
+HTTP 200 in 0.045698 s

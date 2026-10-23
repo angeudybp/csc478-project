@@ -1,0 +1,42 @@
+# 30 uploads, 10 at a time, spread over the inference replicas (T10, T13)
+# cluster: fabric   captured: 2026-10-23T21:25:02Z
+
+Pods were just recreated in step 04, so each sidecar starts near zero.
+
+$ kubectl -n imgpipe get endpointslices -l kubernetes.io/service-name=inference-svc
+NAME                  ADDRESSTYPE   PORTS       ENDPOINTS                         AGE
+inference-svc-k2c6x   IPv4          9100,8082   10.42.1.20,10.42.2.11,10.42.0.4   11m
+
+HTTP status of the 30 uploads:
+     30 200
+
+Inference pod that served each upload (from the gateway response):
+      8 inference-89c6d59d5-282f7
+      9 inference-89c6d59d5-k8p5m
+     13 inference-89c6d59d5-ndm68
+
+Each replica's metrics-exporter sidecar, read through kubectl port-forward:
+
+$ kubectl -n imgpipe port-forward pod/inference-89c6d59d5-282f7 19100:9100 & curl localhost:19100/metrics
+inference_requests_total{pod="inference-89c6d59d5-282f7"} 8
+inference_request_errors_total{pod="inference-89c6d59d5-282f7"} 0
+inference_request_latency_ms{pod="inference-89c6d59d5-282f7",quantile="0.5"} 12.640
+inference_request_latency_ms{pod="inference-89c6d59d5-282f7",quantile="0.95"} 22.707
+inference_request_latency_ms_sum{pod="inference-89c6d59d5-282f7"} 126.867
+inference_request_latency_ms_count{pod="inference-89c6d59d5-282f7"} 8
+
+$ kubectl -n imgpipe port-forward pod/inference-89c6d59d5-k8p5m 19101:9100 & curl localhost:19101/metrics
+inference_requests_total{pod="inference-89c6d59d5-k8p5m"} 9
+inference_request_errors_total{pod="inference-89c6d59d5-k8p5m"} 0
+inference_request_latency_ms{pod="inference-89c6d59d5-k8p5m",quantile="0.5"} 12.554
+inference_request_latency_ms{pod="inference-89c6d59d5-k8p5m",quantile="0.95"} 25.873
+inference_request_latency_ms_sum{pod="inference-89c6d59d5-k8p5m"} 153.104
+inference_request_latency_ms_count{pod="inference-89c6d59d5-k8p5m"} 9
+
+$ kubectl -n imgpipe port-forward pod/inference-89c6d59d5-ndm68 19102:9100 & curl localhost:19102/metrics
+inference_requests_total{pod="inference-89c6d59d5-ndm68"} 14
+inference_request_errors_total{pod="inference-89c6d59d5-ndm68"} 0
+inference_request_latency_ms{pod="inference-89c6d59d5-ndm68",quantile="0.5"} 14.280
+inference_request_latency_ms{pod="inference-89c6d59d5-ndm68",quantile="0.95"} 18.857
+inference_request_latency_ms_sum{pod="inference-89c6d59d5-ndm68"} 205.294
+inference_request_latency_ms_count{pod="inference-89c6d59d5-ndm68"} 14

@@ -1,0 +1,3 @@
+*
+!.gitignore
+!playbook-nfs.yml

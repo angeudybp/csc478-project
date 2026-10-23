@@ -1,0 +1,34 @@
+# Scaling the inference Deployment 3 -> 1 -> 3 (T10)
+# cluster: fabric   captured: 2026-10-23T21:24:28Z
+
+$ kubectl -n imgpipe scale deploy/inference --replicas=1
+deployment.apps/inference scaled
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=120s
+deployment "inference" successfully rolled out
+
+$ kubectl -n imgpipe get deploy/inference
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+inference   1/1     1            1           10m
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide
+NAME                        READY   STATUS    RESTARTS   AGE   IP          NODE    NOMINATED NODE   READINESS GATES
+inference-89c6d59d5-t7g9s   2/2     Running   0          10m   10.42.0.3   node1   <none>           <none>
+
+$ kubectl -n imgpipe scale deploy/inference --replicas=3
+deployment.apps/inference scaled
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=120s
+Waiting for deployment "inference" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "inference" rollout to finish: 2 of 3 updated replicas are available...
+deployment "inference" successfully rolled out
+
+$ kubectl -n imgpipe get deploy/inference
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+inference   3/3     3            3           10m
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE    NOMINATED NODE   READINESS GATES
+inference-89c6d59d5-6hgdm   2/2     Running   0          2s    10.42.1.18   node3   <none>           <none>
+inference-89c6d59d5-l8fgt   2/2     Running   0          2s    10.42.2.10   node2   <none>           <none>
+inference-89c6d59d5-t7g9s   2/2     Running   0          10m   10.42.0.3    node1   <none>           <none>

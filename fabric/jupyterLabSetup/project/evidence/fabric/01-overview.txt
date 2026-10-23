@@ -1,0 +1,26 @@
+# Deployments, pods and Services (kubectl get deploy,pods,svc)
+# cluster: fabric   captured: 2026-10-23T21:24:27Z
+
+$ kubectl -n imgpipe get deploy,pods,svc -o wide
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                            SELECTOR
+deployment.apps/gateway      1/1     1            1           10m   gateway                      ghcr.io/angeudybp/kubevision-gateway:0.2.0                                                        app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+deployment.apps/inference    5/5     5            5           10m   inference,metrics-exporter   ghcr.io/angeudybp/kubevision-inference:0.2.0,ghcr.io/angeudybp/kubevision-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+deployment.apps/preprocess   2/2     2            2           10m   preprocess                   ghcr.io/angeudybp/kubevision-preprocess:0.2.0                                                     app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+deployment.apps/storage      1/1     1            1           10m   storage                      ghcr.io/angeudybp/kubevision-storage:0.2.0                                                        app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision
+
+NAME                            READY   STATUS    RESTARTS   AGE     IP           NODE    NOMINATED NODE   READINESS GATES
+pod/gateway-fcd766774-pdrgn     1/1     Running   0          10m     10.42.1.12   node3   <none>           <none>
+pod/inference-89c6d59d5-cdznd   2/2     Running   0          10m     10.42.2.8    node2   <none>           <none>
+pod/inference-89c6d59d5-d7srr   2/2     Running   0          3m50s   10.42.2.9    node2   <none>           <none>
+pod/inference-89c6d59d5-mxjgh   2/2     Running   0          2m6s    10.42.1.17   node3   <none>           <none>
+pod/inference-89c6d59d5-t7g9s   2/2     Running   0          10m     10.42.0.3    node1   <none>           <none>
+pod/inference-89c6d59d5-wx8c7   2/2     Running   0          3m50s   10.42.1.16   node3   <none>           <none>
+pod/preprocess-d5bd6c78-pnsxb   1/1     Running   0          10m     10.42.2.7    node2   <none>           <none>
+pod/preprocess-d5bd6c78-v76tz   1/1     Running   0          10m     10.42.1.13   node3   <none>           <none>
+pod/storage-54b8d559c8-xrd5z    1/1     Running   0          10m     10.42.1.15   node3   <none>           <none>
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE   SELECTOR
+service/gateway-svc      NodePort    10.43.13.72     <none>        8080:30080/TCP      10m   app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+service/inference-svc    ClusterIP   10.43.10.28     <none>        8082/TCP,9100/TCP   10m   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+service/preprocess-svc   ClusterIP   10.43.165.254   <none>        8081/TCP            10m   app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+service/storage-svc      ClusterIP   10.43.205.109   <none>        8083/TCP            10m   app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision

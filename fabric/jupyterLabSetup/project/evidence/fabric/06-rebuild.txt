@@ -1,0 +1,87 @@
+# kubectl delete -f, then kubectl apply -f: the stack comes back with no manual steps (T12)
+# cluster: fabric   captured: 2026-10-23T21:25:07Z
+
+$ kubectl delete -f /home/ubuntu/kubevision/deployments/ -f /home/ubuntu/kubevision/services/ --wait=true
+namespace "imgpipe" deleted
+deployment.apps "gateway" deleted from imgpipe namespace
+deployment.apps "preprocess" deleted from imgpipe namespace
+deployment.apps "inference" deleted from imgpipe namespace
+deployment.apps "storage" deleted from imgpipe namespace
+service "gateway-svc" deleted from imgpipe namespace
+service "preprocess-svc" deleted from imgpipe namespace
+service "inference-svc" deleted from imgpipe namespace
+service "storage-svc" deleted from imgpipe namespace
+
+$ kubectl apply -f /home/ubuntu/kubevision/deployments/ -f /home/ubuntu/kubevision/services/
+namespace/imgpipe created
+deployment.apps/gateway created
+deployment.apps/preprocess created
+deployment.apps/inference created
+deployment.apps/storage created
+service/gateway-svc created
+service/preprocess-svc created
+service/inference-svc created
+service/storage-svc created
+
+$ kubectl -n imgpipe rollout status deploy/gateway --timeout=180s
+Waiting for deployment "gateway" rollout to finish: 0 of 1 updated replicas are available...
+deployment "gateway" successfully rolled out
+
+$ kubectl -n imgpipe rollout status deploy/preprocess --timeout=180s
+deployment "preprocess" successfully rolled out
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=180s
+Waiting for deployment "inference" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "inference" rollout to finish: 2 of 3 updated replicas are available...
+deployment "inference" successfully rolled out
+
+$ kubectl -n imgpipe rollout status deploy/storage --timeout=180s
+deployment "storage" successfully rolled out
+
+$ kubectl -n imgpipe get deploy,pods,svc -o wide
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                            SELECTOR
+deployment.apps/gateway      1/1     1            1           3s    gateway                      ghcr.io/angeudybp/kubevision-gateway:0.2.0                                                        app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+deployment.apps/inference    3/3     3            3           3s    inference,metrics-exporter   ghcr.io/angeudybp/kubevision-inference:0.2.0,ghcr.io/angeudybp/kubevision-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+deployment.apps/preprocess   2/2     2            2           3s    preprocess                   ghcr.io/angeudybp/kubevision-preprocess:0.2.0                                                     app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+deployment.apps/storage      1/1     1            1           3s    storage                      ghcr.io/angeudybp/kubevision-storage:0.2.0                                                        app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision
+
+NAME                            READY   STATUS    RESTARTS   AGE   IP           NODE    NOMINATED NODE   READINESS GATES
+pod/gateway-fcd766774-f6k7r     1/1     Running   0          3s    10.42.1.21   node3   <none>           <none>
+pod/inference-89c6d59d5-4jp2h   2/2     Running   0          3s    10.42.1.23   node3   <none>           <none>
+pod/inference-89c6d59d5-9nhvv   2/2     Running   0          3s    10.42.0.5    node1   <none>           <none>
+pod/inference-89c6d59d5-b9cfx   2/2     Running   0          3s    10.42.2.13   node2   <none>           <none>
+pod/preprocess-d5bd6c78-8fswh   1/1     Running   0          3s    10.42.1.22   node3   <none>           <none>
+pod/preprocess-d5bd6c78-w9n2c   1/1     Running   0          3s    10.42.2.12   node2   <none>           <none>
+pod/storage-54b8d559c8-xb7zq    1/1     Running   0          3s    10.42.1.24   node3   <none>           <none>
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE   SELECTOR
+service/gateway-svc      NodePort    10.43.246.212   <none>        8080:30080/TCP      3s    app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+service/inference-svc    ClusterIP   10.43.105.189   <none>        8082/TCP,9100/TCP   3s    app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+service/preprocess-svc   ClusterIP   10.43.181.37    <none>        8081/TCP            3s    app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+service/storage-svc      ClusterIP   10.43.188.162   <none>        8083/TCP            3s    app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision
+
+First successful upload 23 s after all Deployments reported ready.
+
+Smoke test against the rebuilt stack:
+Gateway: http://127.0.0.1:18080
+
+PASS  T1   Upload PNG -> prediction                     200 (matchstick, 0.051299s, pod inference-89c6d59d5-4jp2h)
+PASS  T1   Prediction is real (not mock)                False (mobilenetv2-12-onnx)
+PASS  T1   GET /results/{id}                            200 
+PASS  T1   Stored record matches the response           matchstick 
+PASS  T1   Original image is returned byte-for-byte     yes 
+PASS  T1   GET processed 224x224 image                  200 
+PASS  T1   Download is named after the label            yes ("matchstick-d15a90-model-input-224px.jpg")
+PASS  T1   Upload JPEG -> prediction                    200 (0.037026s)
+PASS  T2   12 MB upload rejected                        413 (PAYLOAD_TOO_LARGE)
+PASS  T3   7.5 MB upload accepted                       200 (0.191939s)
+PASS  T3   ...within 30 s                               yes 
+PASS  T4   Text file named .jpg rejected                415 (UNSUPPORTED_MEDIA_TYPE)
+PASS  T5   GIF rejected                                 415 
+PASS  T5   SVG rejected                                 415 
+PASS  T6   Empty file rejected                          400 (EMPTY_UPLOAD)
+PASS  T6   Missing file field rejected                  400 
+PASS  T7   Unknown imageId                              404 
+PASS  UI   GET / serves the upload page                 200 
+
+18 passed, 0 failed
