@@ -7,7 +7,8 @@ It is deployed on a 3-node k3s cluster on [FABRIC](https://portal.fabric-testbed
 developed locally on Minikube.
 
 > **Name:** the project is **KubeVision**. The Milestone 1 report was submitted under the earlier
-> name KubeBalancer; the design it describes is the same.
+> name KubeBalancer. It has since been revised (October 23, 2026) to use the new name and an overview
+> that matches the classification premise; the design it describes is unchanged.
 
 ## Status
 
