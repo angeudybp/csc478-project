@@ -88,6 +88,20 @@ To run it from an SSH session instead:
 cd kubebalancer && GATEWAY_URL=http://192.168.10.10:30080 scripts/evidence.sh fabric
 ```
 
+## Security notes
+
+- **Join tokens** reach the VMs as files over SFTP and are stored root-only
+  (`/etc/rancher/k3s-join-token`, mode 600). They never appear on a command line, `ps` or the sudo log.
+- **Agents verify the server.** They join with the server's `node-token`, which embeds the cluster
+  CA hash, so an agent refuses a server presenting a different CA.
+- **The k3s installer is pinned**: `install.sh` is fetched from the `v1.31.4+k3s1` tag and must match
+  the SHA-256 in `install-k3s.sh`; it then checks the k3s binary against the release checksums.
+- **The kubeconfig** (cluster-admin credentials) stays at mode 600; the `ubuntu` user gets a private
+  copy in `~/.kube/config`.
+- **Public NAT64** (IPv6-only sites, `USE_PUBLIC_NAT64`) hands DNS and IPv4 transit to a third
+  party (nat64.net). TLS and the pinned checksum keep the downloads intact, but prefer a site
+  with IPv4 management access when one is available.
+
 ## 6. Clean up
 
 Run the `slice.delete()` cell. Slices also expire on their own (renew in the portal if you
