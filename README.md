@@ -67,7 +67,8 @@ The images must be available to the cluster first.
 Publish the images to GHCR (`scripts/build-images.sh --push`, then make the packages public), then
 run [`fabric/create-slice.ipynb`](fabric/create-slice.ipynb) in FABRIC JupyterHub. It creates three
 VMs on a private network, installs k3s (one server, two agents), runs the `kubectl apply` above,
-and runs the smoke test. Step-by-step instructions: [`fabric/README.md`](fabric/README.md).
+and runs the smoke test. Step-by-step walkthrough: [`fabric/MIGRATION.md`](fabric/MIGRATION.md);
+reference and troubleshooting: [`fabric/README.md`](fabric/README.md).
 
 ### On Minikube (local development)
 

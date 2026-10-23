@@ -1,5 +1,8 @@
 # Deploying KubeBalancer on FABRIC
 
+**First time? Follow [`MIGRATION.md`](MIGRATION.md)**, a step-by-step walkthrough from Minikube to
+submitted FABRIC evidence. This page is the reference.
+
 The submitted deployment runs on a 3-node [k3s](https://k3s.io) cluster in a FABRIC slice. The
 manifests in `deployments/` and `services/` are the same ones used on Minikube; only the way images
 reach the nodes and the way you reach the gateway differ.
@@ -15,6 +18,7 @@ reach the nodes and the way you reach the gateway differ.
 
 | File | What it does |
 |---|---|
+| `MIGRATION.md` | Step-by-step migration from Minikube to FABRIC, with a check after each step |
 | `create-slice.ipynb` | Creates the slice, installs k3s, deploys, runs smoke and evidence (FABRIC JupyterHub) |
 | `install-k3s.sh` | Installs k3s on one VM as server or agent, bound to the private network |
 | `load-images.sh` | Fallback: copies images from your laptop into each node when they cannot pull from GHCR |
