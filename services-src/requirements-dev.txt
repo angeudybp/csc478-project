@@ -1,0 +1,4 @@
+# Everything the unit tests need: the union of the service requirements plus pytest.
+-r gateway/requirements.txt
+-r preprocess/requirements.txt
+pytest==8.3.4
