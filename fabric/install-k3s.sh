@@ -41,13 +41,20 @@ case "$role" in
   server)
     INSTALL_K3S_VERSION="$K3S_VERSION" K3S_TOKEN="$token" sh "$installer" server "${common[@]}" \
       --advertise-address "$node_ip" --tls-san "$node_ip" \
-      --disable traefik --write-kubeconfig-mode 644
+      --disable traefik
     # Wait for the API server, so agents can join as soon as this returns.
     for _ in $(seq 60); do
       kubectl get nodes >/dev/null 2>&1 && break
       sleep 2
     done
     kubectl get nodes -o wide
+    # The kubeconfig holds cluster-admin credentials, so k3s keeps it at mode 0600. Give the login
+    # user (who ran sudo) a private copy so kubectl works without sudo.
+    if [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]]; then
+      home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+      install -d -m 700 -o "$SUDO_USER" -g "$SUDO_USER" "$home/.kube"
+      install -m 600 -o "$SUDO_USER" -g "$SUDO_USER" /etc/rancher/k3s/k3s.yaml "$home/.kube/config"
+    fi
     ;;
   agent)
     [[ -n "$server_ip" ]] || usage
