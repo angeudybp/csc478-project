@@ -74,3 +74,20 @@ export function podSuffix(pod?: string): string {
   if (!pod) return "unknown";
   return pod.split("-").pop() ?? pod;
 }
+
+export type Variant = "original" | "processed";
+
+/** Same URL with download=1: the gateway answers with a filename built from the label. */
+export function downloadUrl(imageId: string, variant: Variant): string {
+  return `${imageUrl(imageId, variant)}&download=1`;
+}
+
+/** Mirrors the gateway's download_name(), so the UI can show the name a download will get. */
+export function downloadName(r: Result, variant: Variant, ext = "jpg"): string {
+  const slug = r.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "image";
+  const kind = variant === "original" ? "original" : "model-input-224px";
+  return `${slug}-${r.imageId.slice(-6).toLowerCase()}-${kind}.${ext}`;
+}
+
+export const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
+export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

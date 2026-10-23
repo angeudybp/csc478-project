@@ -7,6 +7,7 @@ timeouts and retry rules from the M1 report, Table 3.
 import base64
 import logging
 import os
+import re
 import secrets
 import time
 from contextlib import asynccontextmanager
@@ -199,11 +200,34 @@ async def list_results(request: Request, limit: int = Query(default=20, ge=1, le
     return (await _from_storage(request, f"/results?limit={limit}")).json()
 
 
+def download_name(label: str, image_id: str, variant: str, content_type: str) -> str:
+    """e.g. golden-retriever-4db7ac-original.jpg or golden-retriever-4db7ac-model-input-224px.jpg.
+
+    Named after the prediction; the end of the image ID keeps two photos with the same label apart.
+    """
+    slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-") or "image"
+    ext = {"image/jpeg": "jpg", "image/png": "png"}.get(content_type, "bin")
+    kind = "original" if variant == "original" else "model-input-224px"
+    return f"{slug}-{image_id[-6:].lower()}-{kind}.{ext}"
+
+
 @app.get("/api/v1/images/{image_id}")
 async def get_image(image_id: str, request: Request,
-                    variant: str = Query(default="original", pattern="^(original|processed)$")):
+                    variant: str = Query(default="original", pattern="^(original|processed)$"),
+                    download: bool = Query(default=False)):
+    """``variant=processed`` is the 224x224 image the model saw. ``download=1`` makes the browser
+    save it as a file named after the predicted label."""
     r = await _from_storage(request, f"/objects/{image_id}/{variant}")
-    return Response(content=r.content, media_type=r.headers.get("content-type"))
+    content_type = r.headers.get("content-type", "application/octet-stream")
+    headers = {}
+    if download:
+        try:
+            label = (await _from_storage(request, f"/results/{image_id}")).json().get("label", "")
+        except ApiError:
+            label = ""  # The image exists but its record does not; still offer the file.
+        headers["Content-Disposition"] = \
+            f'attachment; filename="{download_name(label, image_id, variant, content_type)}"'
+    return Response(content=r.content, media_type=content_type, headers=headers)
 
 
 # The upload page is served by the gateway, so the UI and the API share one origin and one Service.

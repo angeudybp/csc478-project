@@ -91,20 +91,23 @@ Minikube nor a bare k3s cluster has a cloud load balancer, so a `LoadBalancer` S
 | Minikube (VM driver, or Docker driver with a routable node IP) | `http://$(minikube ip):30080` |
 | Minikube with Docker Desktop | `minikube service gateway-svc -n imgpipe --url` and keep that terminal open; use the URL it prints |
 
-Open the gateway URL in a browser for the upload UI. It shows the prediction, the original next to
-the 224×224 image the model saw, the route the request took (with per-hop timings and the inference
-replica that served it), and recent uploads. Or use the API:
+Open the gateway URL in a browser for the upload UI. After a photo is classified it marks the
+square the model saw, shows the route the request took (per-hop timings and the inference replica
+that served it), and offers both images as downloads named after the label, e.g.
+`samoyed-6211a8-original.jpg` and `samoyed-6211a8-model-input-224px.jpg`. Earlier photos stay in a
+gallery with the same downloads. Or use the API:
 
 ```bash
 curl -F "file=@dog.jpg" http://localhost:30080/api/v1/images       # classify
 curl http://localhost:30080/api/v1/results/<imageId>                # fetch a stored result
-curl -o out.jpg "http://localhost:30080/api/v1/images/<imageId>?variant=processed"
+curl -OJ "http://localhost:30080/api/v1/images/<imageId>?variant=processed&download=1"   # the 224x224 model input
+curl -OJ "http://localhost:30080/api/v1/images/<imageId>?variant=original&download=1"    # the original photo
 ```
 
 Run the API test suite (the M2 cases from the M1 test matrix) against any cluster:
 
 ```bash
-GATEWAY_URL=http://localhost:30080 scripts/smoke.sh      # 17 checks
+GATEWAY_URL=http://localhost:30080 scripts/smoke.sh      # 18 checks
 ```
 
 ## Evidence of scaling and self-healing
@@ -194,8 +197,8 @@ Service is spreading load, while the model server itself stays free of metrics c
 
 ## Tests
 
-- **Unit tests** (55, pytest): `docker run --rm -v "$PWD/services-src:/src" -w /src python:3.11-slim sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
-- **API smoke test** (17 checks: happy path, retrieval, 413/415/400/404 cases, UI): `scripts/smoke.sh`
+- **Unit tests** (57, pytest): `docker run --rm -v "$PWD/services-src:/src" -w /src python:3.11-slim sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
+- **API smoke test** (18 checks: happy path, retrieval, label-named downloads, 413/415/400/404 cases, UI): `scripts/smoke.sh`
 - **Operational evidence** (scaling, self-healing, scale-to-zero, load balancing, rebuild): `scripts/evidence.sh`
 
 Uploads made by the scripts carry `source=test`, so the web UI lists only real uploads.

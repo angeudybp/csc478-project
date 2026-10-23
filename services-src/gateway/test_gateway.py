@@ -50,7 +50,8 @@ class FakeUpstreams:
             return httpx.Response(201, json={})
         if request.url.path in self.stored:
             body = self.stored[request.url.path]
-            return httpx.Response(200, content=body, headers={"Content-Type": "application/json"})
+            ctype = "image/jpeg" if request.url.path.startswith("/objects/") else "application/json"
+            return httpx.Response(200, content=body, headers={"Content-Type": ctype})
         return httpx.Response(404, json={"error": {"code": "NOT_FOUND", "message": "nope"}})
 
 
@@ -106,6 +107,26 @@ def test_result_can_be_fetched_back(client):
     r = client.get(f"/api/v1/results/{image_id}")
     assert r.status_code == 200
     assert r.json()["imageId"] == image_id
+
+
+def test_images_download_named_after_the_prediction(client):
+    image_id = upload(client, jpeg_bytes()).json()["imageId"]
+    suffix = image_id[-6:].lower()
+    r = client.get(f"/api/v1/images/{image_id}?variant=processed&download=1")
+    assert r.status_code == 200
+    assert r.headers["content-disposition"] == \
+        f'attachment; filename="tabby-cat-{suffix}-model-input-224px.jpg"'
+    r = client.get(f"/api/v1/images/{image_id}?variant=original&download=1")
+    assert r.headers["content-disposition"].endswith(f'tabby-cat-{suffix}-original.jpg"')
+    assert "content-disposition" not in client.get(f"/api/v1/images/{image_id}").headers
+
+
+def test_download_name_is_safe_for_any_label():
+    assert gateway.download_name("Labrador retriever", "img_X1234567ABCDEF", "original", "image/png") \
+        == "labrador-retriever-abcdef-original.png"
+    assert gateway.download_name('a/b\\c"d', "img_123456", "processed", "image/jpeg") \
+        == "a-b-c-d-123456-model-input-224px.jpg"
+    assert gateway.download_name("", "img_123456", "original", "image/jpeg") == "image-123456-original.jpg"
 
 
 def test_missing_file_field_is_400(client):

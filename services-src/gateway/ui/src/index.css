@@ -2,61 +2,157 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light table: cool neutral surfaces, one grease-pencil amber reserved for the request's route. */
+/* Cool neutral surfaces with soft depth. Blue is for things you can act on; amber marks the
+   route a request took through the cluster. */
 :root {
-  --table: 238 242 245;
-  --sheet: 255 255 255;
-  --frame: 31 38 46;
-  --graphite: 94 105 116;
-  --rule: 211 218 224;
-  --marker: 224 161 0;
-  --marker-ink: 31 38 46;
-  --alert: 180 35 24;
+  --bg: 244 246 251;
+  --surface: 255 255 255;
+  --raised: 248 249 252;
+  --line: 226 230 239;
+  --ink: 20 26 38;
+  --muted: 94 103 121;
+  --accent: 59 91 219;
+  --focus: 224 148 0;
+  --danger: 205 43 43;
+  --shadow: 20 26 38;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --table: 22 27 33;
-    --sheet: 30 37 45;
-    --frame: 230 235 239;
-    --graphite: 148 160 171;
-    --rule: 46 55 65;
-    --marker: 242 184 41;
-    --marker-ink: 22 27 33;
-    --alert: 255 138 128;
+    --bg: 12 16 26;
+    --surface: 20 26 39;
+    --raised: 27 34 50;
+    --line: 40 49 68;
+    --ink: 232 236 244;
+    --muted: 141 151 171;
+    --accent: 122 146 255;
+    --focus: 255 181 71;
+    --danger: 248 113 113;
+    --shadow: 0 0 0;
     color-scheme: dark;
   }
 }
 
 body {
-  @apply bg-table text-frame font-sans antialiased;
+  @apply bg-bg font-sans text-ink antialiased;
 }
 
 :focus-visible {
-  @apply outline outline-2 outline-offset-2 outline-marker;
+  @apply rounded-md outline outline-2 outline-offset-2 outline-accent;
 }
 
-/* The one orchestrated moment: when a result arrives, the route lights up hop by hop. */
-@keyframes route-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* A faint 16 px grid: a nod to the pixel grid the model works on. */
+.pixel-grid {
+  background-image:
+    linear-gradient(rgb(var(--line) / 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--line) / 0.55) 1px, transparent 1px);
+  background-size: 16px 16px;
 }
-@keyframes stage-in {
-  from { box-shadow: 0 0 0 0 rgb(var(--marker) / 0.6); }
-  to { box-shadow: 0 0 0 6px rgb(var(--marker) / 0); }
+
+/* --- Motion ----------------------------------------------------------------------------- */
+
+/* While classifying: a scan line sweeps the photo. */
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(560%); }
 }
-.route-segment {
-  animation: route-in 260ms ease-out both;
+.scanline {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 18%;
+  background: linear-gradient(to bottom, transparent, rgb(var(--accent) / 0.35), transparent);
+  animation: scan 1.3s ease-in-out infinite;
+}
+
+/* Things that arrive with a result rise into place, one after another (--delay). */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   animation-delay: var(--delay, 0ms);
+}
+
+/* The square the model saw settles over the photo like a camera finding focus. */
+@keyframes focus-in {
+  from { opacity: 0; transform: scale(1.12); }
+  to { opacity: 1; transform: none; }
+}
+.focus-in {
+  animation: focus-in 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* A packet travels along each connector of the pipeline, in order. */
+@keyframes travel-x {
+  0% { left: 0%; opacity: 0; }
+  15%, 85% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@keyframes travel-y {
+  0% { top: 0%; opacity: 0; }
+  15%, 85% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+.packet {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 9999px;
+  background: rgb(var(--focus));
+  box-shadow: 0 0 0 4px rgb(var(--focus) / 0.25), 0 0 12px rgb(var(--focus) / 0.6);
+  animation: travel-x 380ms ease-in-out both;
+  animation-delay: var(--delay, 0ms);
+}
+@media (max-width: 767px) {
+  .packet {
+    top: 0;
+    left: 50%;
+    animation-name: travel-y;
+  }
+}
+
+/* A pipeline stage lights up when the packet reaches it. */
+@keyframes stage-on {
+  to { border-color: rgb(var(--focus)); }
+}
+@keyframes stage-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(var(--focus) / 0.45); }
+  100% { box-shadow: 0 0 0 12px rgb(var(--focus) / 0); }
 }
 .stage-lit {
-  animation: stage-in 500ms ease-out both;
-  animation-delay: var(--delay, 0ms);
+  animation:
+    stage-on 200ms ease-out both,
+    stage-pulse 800ms ease-out both;
+  animation-delay: var(--delay, 0ms), var(--delay, 0ms);
 }
+
+/* Placeholder shimmer while a result is on its way. */
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, rgb(var(--raised)) 25%, rgb(var(--line)) 50%, rgb(var(--raised)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .route-segment,
-  .stage-lit {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  .scanline {
+    display: none;
   }
 }

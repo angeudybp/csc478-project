@@ -41,14 +41,14 @@ Make sure what you are about to ship works locally.
 
 ```bash
 cd ~/Desktop/"CSC 478"/Project
-# Unit tests (55)
+# Unit tests (57)
 docker run --rm -v "$PWD/services-src:/src" -w /src python:3.11-slim \
   sh -c "pip install -q -r requirements-dev.txt && pytest -q"
 # The stack on Minikube
 GATEWAY_URL=<your minikube service URL> scripts/smoke.sh
 ```
 
-**Check:** `55 passed` and `17 passed, 0 failed`.
+**Check:** `57 passed` and `18 passed, 0 failed`.
 
 ## Step 2. Push the code to GitHub
 
@@ -133,7 +133,7 @@ minutes.
 **Check:**
 - `kubectl -n imgpipe get pods -o wide` shows 7 pods `Running`, inference at `2/2`, and the
   **inference pods spread over more than one NODE**.
-- The smoke test ends with `17 passed, 0 failed`.
+- The smoke test ends with `18 passed, 0 failed`.
 
 ## Step 7. Reach the gateway from your laptop (notebook step 5)
 
@@ -161,7 +161,7 @@ minutes.
 - http://localhost:30080 in your browser shows the KubeBalancer UI; upload a photo and confirm the
   inference lane shows a pod and that the label is sensible.
 - In another terminal on your laptop: `GATEWAY_URL=http://localhost:30080 scripts/smoke.sh` →
-  `17 passed, 0 failed`. This shows the external Service working from outside the cluster.
+  `18 passed, 0 failed`. This shows the external Service working from outside the cluster.
 
 ## Step 8. Capture the evidence and screenshots (notebook step 6)
 
@@ -185,7 +185,7 @@ Then run the step 6 cell in the notebook. It runs `scripts/evidence.sh fabric` o
 `evidence-fabric.tgz` into the notebook folder. Your laptop tunnel survives the rebuild because
 the NodePort stays 30080.
 
-**Check:** the cell prints `exit=0`, and the tail of the log shows `17 passed, 0 failed`.
+**Check:** the cell prints `exit=0`, and the tail of the log shows `18 passed, 0 failed`.
 
 ## Step 9. Commit the evidence
 

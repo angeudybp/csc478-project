@@ -7,17 +7,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        table: v("table"), // the light-table background
-        sheet: v("sheet"), // surfaces images sit on
-        frame: v("frame"), // primary text and strong lines
-        graphite: v("graphite"), // secondary text
-        rule: v("rule"), // hairlines and tracks
-        marker: v("marker"), // grease-pencil amber: the route a request took
-        "marker-ink": v("marker-ink"), // text on marker
-        alert: v("alert"),
+        bg: v("bg"),
+        surface: v("surface"), // cards and panels
+        raised: v("raised"), // wells inside panels
+        line: v("line"), // borders and tracks
+        ink: v("ink"), // primary text
+        muted: v("muted"), // secondary text
+        accent: v("accent"), // interactive: buttons, selection, focus
+        focus: v("focus"), // amber: the route a request took
+        danger: v("danger"),
       },
       fontFamily: {
         sans: ['"Schibsted Grotesk Variable"', "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "0 1px 2px rgb(var(--shadow) / 0.06), 0 8px 24px -12px rgb(var(--shadow) / 0.18)",
+        lift: "0 2px 4px rgb(var(--shadow) / 0.08), 0 16px 32px -12px rgb(var(--shadow) / 0.28)",
       },
     },
   },

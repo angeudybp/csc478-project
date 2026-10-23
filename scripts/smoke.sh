@@ -69,6 +69,12 @@ get "$API/images/$id?variant=original" "$WORK/original" >/dev/null
 cmp -s "$WORK/original" "$WORK/in/sample.png" && same=yes || same=no
 check T1 "Original image is returned byte-for-byte" yes "$same"
 check T1 "GET processed 224x224 image" 200 "$(get "$API/images/$id?variant=processed" "$WORK/processed.jpg")"
+disposition="$(curl -s -m 10 -o /dev/null -D - "$API/images/$id?variant=processed&download=1" | tr -d '\r' \
+  | sed -n 's/^[Cc]ontent-[Dd]isposition: //p')"
+expected_name="$(python3 -c "import re,sys; print(re.sub(r'[^a-z0-9]+','-',sys.argv[1].lower()).strip('-'))" \
+  "$(json "$WORK/t1.json" 'd["label"]')")"
+[[ "$disposition" == *"filename=\"$expected_name-"*"-model-input-224px.jpg\""* ]] && named=yes || named=no
+check T1 "Download is named after the label" yes "$named" "(${disposition#*filename=})"
 
 # T1 again with a JPEG: re-upload the processed image the pipeline just produced.
 read -r code secs < <(upload "$WORK/processed.jpg" "processed.jpg")
