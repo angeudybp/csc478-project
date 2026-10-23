@@ -1,5 +1,5 @@
 # Cluster and client versions
-# cluster: minikube   captured: 2026-10-23T04:49:16Z
+# cluster: minikube   captured: 2026-10-23T19:07:52Z
 
 $ kubectl version
 Client Version: v1.37.0
@@ -8,4 +8,4 @@ Server Version: v1.37.0
 
 $ kubectl get nodes -o wide
 NAME       STATUS   ROLES           AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION            CONTAINER-RUNTIME
-minikube   Ready    control-plane   83m   v1.37.0   192.168.49.2   <none>        Debian GNU/Linux 12 (bookworm)   7.0.12-linuxkit (amd64)   containerd://2.3.4
+minikube   Ready    control-plane   15h   v1.37.0   192.168.49.2   <none>        Debian GNU/Linux 12 (bookworm)   7.0.12-linuxkit (amd64)   containerd://2.3.4

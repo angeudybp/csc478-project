@@ -1,5 +1,5 @@
 # kubectl delete -f, then kubectl apply -f: the stack comes back with no manual steps (T12)
-# cluster: minikube   captured: 2026-10-23T04:49:58Z
+# cluster: minikube   captured: 2026-10-23T19:08:34Z
 
 $ kubectl delete -f /home/angeudybp/Desktop/CSC 478/Project/deployments/ -f /home/angeudybp/Desktop/CSC 478/Project/services/ --wait=true
 namespace "imgpipe" deleted
@@ -31,8 +31,6 @@ $ kubectl -n imgpipe rollout status deploy/preprocess --timeout=180s
 deployment "preprocess" successfully rolled out
 
 $ kubectl -n imgpipe rollout status deploy/inference --timeout=180s
-Waiting for deployment "inference" rollout to finish: 0 of 3 updated replicas are available...
-Waiting for deployment "inference" rollout to finish: 1 of 3 updated replicas are available...
 Waiting for deployment "inference" rollout to finish: 2 of 3 updated replicas are available...
 deployment "inference" successfully rolled out
 
@@ -40,41 +38,42 @@ $ kubectl -n imgpipe rollout status deploy/storage --timeout=180s
 deployment "storage" successfully rolled out
 
 $ kubectl -n imgpipe get deploy,pods,svc -o wide
-NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                                SELECTOR
-deployment.apps/gateway      1/1     1            1           6s    gateway                      ghcr.io/angeudybp/kubebalancer-gateway:0.2.0                                                          app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
-deployment.apps/inference    3/3     3            3           6s    inference,metrics-exporter   ghcr.io/angeudybp/kubebalancer-inference:0.2.0,ghcr.io/angeudybp/kubebalancer-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
-deployment.apps/preprocess   2/2     2            2           6s    preprocess                   ghcr.io/angeudybp/kubebalancer-preprocess:0.2.0                                                       app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
-deployment.apps/storage      1/1     1            1           6s    storage                      ghcr.io/angeudybp/kubebalancer-storage:0.2.0                                                          app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                            SELECTOR
+deployment.apps/gateway      1/1     1            1           2s    gateway                      ghcr.io/angeudybp/kubevision-gateway:0.2.0                                                        app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+deployment.apps/inference    3/3     3            3           2s    inference,metrics-exporter   ghcr.io/angeudybp/kubevision-inference:0.2.0,ghcr.io/angeudybp/kubevision-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+deployment.apps/preprocess   2/2     2            2           2s    preprocess                   ghcr.io/angeudybp/kubevision-preprocess:0.2.0                                                     app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+deployment.apps/storage      1/1     1            1           2s    storage                      ghcr.io/angeudybp/kubevision-storage:0.2.0                                                        app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision
 
-NAME                             READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
-pod/gateway-7689c8bb54-4h7b6     1/1     Running   0          6s    10.244.0.73   minikube   <none>           <none>
-pod/inference-9bcdf57fd-fk6k9    2/2     Running   0          6s    10.244.0.76   minikube   <none>           <none>
-pod/inference-9bcdf57fd-k96nn    2/2     Running   0          6s    10.244.0.79   minikube   <none>           <none>
-pod/inference-9bcdf57fd-lp4fh    2/2     Running   0          6s    10.244.0.77   minikube   <none>           <none>
-pod/preprocess-884ff4686-bwv8x   1/1     Running   0          6s    10.244.0.75   minikube   <none>           <none>
-pod/preprocess-884ff4686-rvt77   1/1     Running   0          6s    10.244.0.74   minikube   <none>           <none>
-pod/storage-7755f68d4b-mg6m4     1/1     Running   0          6s    10.244.0.78   minikube   <none>           <none>
+NAME                             READY   STATUS    RESTARTS   AGE   IP             NODE       NOMINATED NODE   READINESS GATES
+pod/gateway-84b58b65bb-6qpth     1/1     Running   0          2s    10.244.0.97    minikube   <none>           <none>
+pod/inference-789b7c667b-6n59l   2/2     Running   0          2s    10.244.0.102   minikube   <none>           <none>
+pod/inference-789b7c667b-84rdc   2/2     Running   0          2s    10.244.0.100   minikube   <none>           <none>
+pod/inference-789b7c667b-ldgk9   2/2     Running   0          2s    10.244.0.101   minikube   <none>           <none>
+pod/preprocess-9f76f8758-d99dj   1/1     Running   0          2s    10.244.0.98    minikube   <none>           <none>
+pod/preprocess-9f76f8758-vcn8s   1/1     Running   0          2s    10.244.0.99    minikube   <none>           <none>
+pod/storage-6994967474-2lx9f     1/1     Running   0          2s    10.244.0.103   minikube   <none>           <none>
 
 NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)             AGE   SELECTOR
-service/gateway-svc      NodePort    10.106.135.248   <none>        8080:30080/TCP      6s    app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
-service/inference-svc    ClusterIP   10.107.249.204   <none>        8082/TCP,9100/TCP   6s    app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
-service/preprocess-svc   ClusterIP   10.103.149.210   <none>        8081/TCP            6s    app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
-service/storage-svc      ClusterIP   10.110.220.186   <none>        8083/TCP            6s    app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+service/gateway-svc      NodePort    10.102.108.208   <none>        8080:30080/TCP      2s    app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+service/inference-svc    ClusterIP   10.110.219.103   <none>        8082/TCP,9100/TCP   2s    app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+service/preprocess-svc   ClusterIP   10.110.164.116   <none>        8081/TCP            2s    app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+service/storage-svc      ClusterIP   10.99.190.89     <none>        8083/TCP            2s    app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision
 
 First successful upload 0 s after all Deployments reported ready.
 
 Smoke test against the rebuilt stack:
 Gateway: http://127.0.0.1:18080
 
-PASS  T1   Upload PNG -> prediction                     200 (matchstick, 0.035231s, pod inference-9bcdf57fd-lp4fh)
+PASS  T1   Upload PNG -> prediction                     200 (matchstick, 0.036420s, pod inference-789b7c667b-6n59l)
 PASS  T1   Prediction is real (not mock)                False (mobilenetv2-12-onnx)
 PASS  T1   GET /results/{id}                            200 
 PASS  T1   Stored record matches the response           matchstick 
 PASS  T1   Original image is returned byte-for-byte     yes 
 PASS  T1   GET processed 224x224 image                  200 
-PASS  T1   Upload JPEG -> prediction                    200 (0.024790s)
+PASS  T1   Download is named after the label            yes ("matchstick-1c19e7-model-input-224px.jpg")
+PASS  T1   Upload JPEG -> prediction                    200 (0.024578s)
 PASS  T2   12 MB upload rejected                        413 (PAYLOAD_TOO_LARGE)
-PASS  T3   7.5 MB upload accepted                       200 (0.117346s)
+PASS  T3   7.5 MB upload accepted                       200 (0.127375s)
 PASS  T3   ...within 30 s                               yes 
 PASS  T4   Text file named .jpg rejected                415 (UNSUPPORTED_MEDIA_TYPE)
 PASS  T5   GIF rejected                                 415 
@@ -84,4 +83,4 @@ PASS  T6   Missing file field rejected                  400
 PASS  T7   Unknown imageId                              404 
 PASS  UI   GET / serves the upload page                 200 
 
-17 passed, 0 failed
+18 passed, 0 failed

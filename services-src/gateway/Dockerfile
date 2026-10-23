@@ -14,7 +14,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY gateway/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY common/kb_common.py gateway/gateway.py ./
+COPY common/kv_common.py gateway/gateway.py ./
 COPY --from=ui /ui/dist/ ./static/
 RUN useradd --uid 10001 --no-create-home app
 USER 10001

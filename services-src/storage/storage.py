@@ -25,7 +25,7 @@ from fastapi import Query, Request
 from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 
-from kb_common import ApiError, create_app
+from kv_common import ApiError, create_app
 
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
 MAX_OBJECT_BYTES = 9 * 1024 * 1024  # Uploads are capped at 8 MB by the gateway; leave headroom.

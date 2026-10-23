@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the five KubeBalancer images.
+# Build the five KubeVision images.
 #
 #   scripts/build-images.sh --minikube   build locally, then load into Minikube (local development)
 #   scripts/build-images.sh --push       build locally and push to GHCR (for the FABRIC cluster)
@@ -21,7 +21,7 @@ case "$mode" in
 esac
 
 for svc in "${SERVICES[@]}"; do
-  image="$REGISTRY/kubebalancer-$svc:$TAG"
+  image="$REGISTRY/kubevision-$svc:$TAG"
   echo "==> $image"
   docker build -q -t "$image" -f "$SRC/$svc/Dockerfile" "$SRC" >/dev/null
   case "$mode" in

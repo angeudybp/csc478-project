@@ -31,7 +31,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from kb_common import ApiError, create_app, request_id
+from kv_common import ApiError, create_app, request_id
 
 MOCK_MODE = os.getenv("MOCK_MODE", "0") == "1"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", "/app/model/mobilenetv2-12.onnx"))

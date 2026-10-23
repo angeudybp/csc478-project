@@ -1,4 +1,4 @@
-# Migrating KubeBalancer from Minikube to FABRIC
+# Migrating KubeVision from Minikube to FABRIC
 
 A step-by-step walkthrough from "it works on Minikube" to "it runs on FABRIC and the evidence is
 committed". Do the steps in order; each ends with a **Check** so you know it worked before moving on.
@@ -79,16 +79,16 @@ FABRIC nodes cannot see your laptop's Docker, so the five images go to the GitHu
    ```
 
 3. Make each package public: on GitHub, your profile → **Packages** → open
-   `kubebalancer-gateway` → Package settings → Danger Zone → **Change visibility → Public**.
-   Repeat for `kubebalancer-preprocess`, `kubebalancer-inference`, `kubebalancer-metrics-sidecar`
-   and `kubebalancer-storage`.
+   `kubevision-gateway` → Package settings → Danger Zone → **Change visibility → Public**.
+   Repeat for `kubevision-preprocess`, `kubevision-inference`, `kubevision-metrics-sidecar`
+   and `kubevision-storage`.
 
 **Check:** anonymous pulls work.
 
 ```bash
 docker logout ghcr.io
 for s in gateway preprocess inference metrics-sidecar storage; do
-  docker manifest inspect ghcr.io/angeudybp/kubebalancer-$s:0.2.0 >/dev/null && echo "$s public" || echo "$s NOT public"
+  docker manifest inspect ghcr.io/angeudybp/kubevision-$s:0.2.0 >/dev/null && echo "$s public" || echo "$s NOT public"
 done
 ```
 
@@ -158,7 +158,7 @@ minutes.
    It prints nothing and keeps running; leave that terminal open.
 
 **Check:**
-- http://localhost:30080 in your browser shows the KubeBalancer UI; upload a photo and confirm the
+- http://localhost:30080 in your browser shows the KubeVision UI; upload a photo and confirm the
   inference lane shows a pod and that the label is sensible.
 - In another terminal on your laptop: `GATEWAY_URL=http://localhost:30080 scripts/smoke.sh` →
   `18 passed, 0 failed`. This shows the external Service working from outside the cluster.
@@ -225,7 +225,7 @@ sed -i "s/TAG:-0\.2\.0/TAG:-$NEW/" scripts/build-images.sh
 scripts/build-images.sh --push           # then make any *new* package public
 git commit -am "Release $NEW" && git push
 # on k3s-server:
-cd kubebalancer && git pull && kubectl apply -f deployments/
+cd kubevision && git pull && kubectl apply -f deployments/
 ```
 
 `kubectl apply` sees the changed image and rolls the pods one by one, without downtime.
@@ -236,7 +236,7 @@ If the repository cannot be public, skip `git clone` on the server and upload yo
 copy instead. Replace the first line of notebook step 4 with:
 
 ```python
-server.upload_directory("..", "kubebalancer")
+server.upload_directory("..", "kubevision")
 ```
 
 (JupyterHub needs the code anyway, which you cloned in step 4 with your GitHub credentials.)

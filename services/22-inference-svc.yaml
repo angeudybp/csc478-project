@@ -7,12 +7,12 @@ metadata:
   name: inference-svc
   namespace: imgpipe
   labels:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision
     app.kubernetes.io/component: inference
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision
     app.kubernetes.io/component: inference
   ports:
     - name: http

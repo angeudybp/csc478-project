@@ -1,42 +1,42 @@
 # 30 uploads, 10 at a time, spread over the inference replicas (T10, T13)
-# cluster: minikube   captured: 2026-10-23T04:49:54Z
+# cluster: minikube   captured: 2026-10-23T19:08:30Z
 
 Pods were just recreated in step 04, so each sidecar starts near zero.
 
 $ kubectl -n imgpipe get endpointslices -l kubernetes.io/service-name=inference-svc
 NAME                  ADDRESSTYPE   PORTS       ENDPOINTS                             AGE
-inference-svc-m8mpm   IPv4          9100,8082   10.244.0.70,10.244.0.71,10.244.0.72   45m
+inference-svc-tpkhl   IPv4          9100,8082   10.244.0.94,10.244.0.95,10.244.0.96   58s
 
 HTTP status of the 30 uploads:
      30 200
 
 Inference pod that served each upload (from the gateway response):
-      7 inference-65d9f64cb7-8d8mm
-     14 inference-65d9f64cb7-95wk2
-      9 inference-65d9f64cb7-jx6kg
+     12 inference-789b7c667b-b7kwm
+     10 inference-789b7c667b-gdn95
+      8 inference-789b7c667b-xktll
 
 Each replica's metrics-exporter sidecar, read through kubectl port-forward:
 
-$ kubectl -n imgpipe port-forward pod/inference-65d9f64cb7-8d8mm 19100:9100 & curl localhost:19100/metrics
-inference_requests_total{pod="inference-65d9f64cb7-8d8mm"} 7
-inference_request_errors_total{pod="inference-65d9f64cb7-8d8mm"} 0
-inference_request_latency_ms{pod="inference-65d9f64cb7-8d8mm",quantile="0.5"} 15.137
-inference_request_latency_ms{pod="inference-65d9f64cb7-8d8mm",quantile="0.95"} 19.921
-inference_request_latency_ms_sum{pod="inference-65d9f64cb7-8d8mm"} 93.065
-inference_request_latency_ms_count{pod="inference-65d9f64cb7-8d8mm"} 7
+$ kubectl -n imgpipe port-forward pod/inference-789b7c667b-b7kwm 19100:9100 & curl localhost:19100/metrics
+inference_requests_total{pod="inference-789b7c667b-b7kwm"} 12
+inference_request_errors_total{pod="inference-789b7c667b-b7kwm"} 0
+inference_request_latency_ms{pod="inference-789b7c667b-b7kwm",quantile="0.5"} 9.081
+inference_request_latency_ms{pod="inference-789b7c667b-b7kwm",quantile="0.95"} 16.951
+inference_request_latency_ms_sum{pod="inference-789b7c667b-b7kwm"} 121.230
+inference_request_latency_ms_count{pod="inference-789b7c667b-b7kwm"} 12
 
-$ kubectl -n imgpipe port-forward pod/inference-65d9f64cb7-95wk2 19101:9100 & curl localhost:19101/metrics
-inference_requests_total{pod="inference-65d9f64cb7-95wk2"} 14
-inference_request_errors_total{pod="inference-65d9f64cb7-95wk2"} 0
-inference_request_latency_ms{pod="inference-65d9f64cb7-95wk2",quantile="0.5"} 10.218
-inference_request_latency_ms{pod="inference-65d9f64cb7-95wk2",quantile="0.95"} 15.466
-inference_request_latency_ms_sum{pod="inference-65d9f64cb7-95wk2"} 151.949
-inference_request_latency_ms_count{pod="inference-65d9f64cb7-95wk2"} 14
+$ kubectl -n imgpipe port-forward pod/inference-789b7c667b-gdn95 19101:9100 & curl localhost:19101/metrics
+inference_requests_total{pod="inference-789b7c667b-gdn95"} 10
+inference_request_errors_total{pod="inference-789b7c667b-gdn95"} 0
+inference_request_latency_ms{pod="inference-789b7c667b-gdn95",quantile="0.5"} 9.890
+inference_request_latency_ms{pod="inference-789b7c667b-gdn95",quantile="0.95"} 19.692
+inference_request_latency_ms_sum{pod="inference-789b7c667b-gdn95"} 124.103
+inference_request_latency_ms_count{pod="inference-789b7c667b-gdn95"} 10
 
-$ kubectl -n imgpipe port-forward pod/inference-65d9f64cb7-jx6kg 19102:9100 & curl localhost:19102/metrics
-inference_requests_total{pod="inference-65d9f64cb7-jx6kg"} 10
-inference_request_errors_total{pod="inference-65d9f64cb7-jx6kg"} 0
-inference_request_latency_ms{pod="inference-65d9f64cb7-jx6kg",quantile="0.5"} 9.535
-inference_request_latency_ms{pod="inference-65d9f64cb7-jx6kg",quantile="0.95"} 16.500
-inference_request_latency_ms_sum{pod="inference-65d9f64cb7-jx6kg"} 109.884
-inference_request_latency_ms_count{pod="inference-65d9f64cb7-jx6kg"} 10
+$ kubectl -n imgpipe port-forward pod/inference-789b7c667b-xktll 19102:9100 & curl localhost:19102/metrics
+inference_requests_total{pod="inference-789b7c667b-xktll"} 9
+inference_request_errors_total{pod="inference-789b7c667b-xktll"} 0
+inference_request_latency_ms{pod="inference-789b7c667b-xktll",quantile="0.5"} 9.097
+inference_request_latency_ms{pod="inference-789b7c667b-xktll",quantile="0.95"} 11.385
+inference_request_latency_ms_sum{pod="inference-789b7c667b-xktll"} 82.233
+inference_request_latency_ms_count{pod="inference-789b7c667b-xktll"} 9

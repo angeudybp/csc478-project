@@ -1,4 +1,4 @@
-# Deploying KubeBalancer on FABRIC
+# Deploying KubeVision on FABRIC
 
 **First time? Follow [`MIGRATION.md`](MIGRATION.md)**, a step-by-step walkthrough from Minikube to
 submitted FABRIC evidence. This page is the reference.
@@ -34,7 +34,7 @@ reach the nodes and the way you reach the gateway differ.
 
 ## 2. Publish the images to GHCR (once per image change)
 
-The nodes pull `ghcr.io/angeudybp/kubebalancer-<service>:0.2.0`.
+The nodes pull `ghcr.io/angeudybp/kubevision-<service>:0.2.0`.
 
 ```bash
 # A GitHub personal access token (classic) with the write:packages scope:
@@ -42,7 +42,7 @@ echo "$GHCR_TOKEN" | docker login ghcr.io -u angeudybp --password-stdin
 scripts/build-images.sh --push
 ```
 
-Then, on GitHub, open each of the five `kubebalancer-*` packages (Profile → Packages → package →
+Then, on GitHub, open each of the five `kubevision-*` packages (Profile → Packages → package →
 Package settings) and set **visibility to Public**. The cluster then needs no pull secret.
 
 Pushed tags are reused as-is: if you change a service, either bump `TAG` (in `build-images.sh`
@@ -61,7 +61,7 @@ in order. The notebook:
 4. clones the repository on `k3s-server`, applies the manifests, and runs `scripts/smoke.sh`.
 
 The repository must be **public** for step 4's `git clone`. If it is private, upload it instead:
-`server.upload_directory("..", "kubebalancer")` from the notebook.
+`server.upload_directory("..", "kubevision")` from the notebook.
 
 ## 4. Reach the gateway from your laptop
 
@@ -89,7 +89,7 @@ on the server) for the README.
 To run it from an SSH session instead:
 
 ```bash
-cd kubebalancer && GATEWAY_URL=http://192.168.10.10:30080 scripts/evidence.sh fabric
+cd kubevision && GATEWAY_URL=http://192.168.10.10:30080 scripts/evidence.sh fabric
 ```
 
 ## Security notes

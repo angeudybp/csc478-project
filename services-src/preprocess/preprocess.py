@@ -8,7 +8,7 @@ from fastapi import Request
 from PIL import Image, ImageOps, UnidentifiedImageError
 from starlette.concurrency import run_in_threadpool
 
-from kb_common import ApiError, create_app
+from kv_common import ApiError, create_app
 
 TARGET_SIZE = (224, 224)
 ALLOWED_FORMATS = {"JPEG", "PNG"}

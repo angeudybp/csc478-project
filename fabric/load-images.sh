@@ -19,12 +19,12 @@ ssh_opts=()
 [[ -n "${SSH_CONFIG:-}" ]] && ssh_opts=(-F "$SSH_CONFIG")
 
 images=()
-for svc in "${SERVICES[@]}"; do images+=("$REGISTRY/kubebalancer-$svc:$TAG"); done
+for svc in "${SERVICES[@]}"; do images+=("$REGISTRY/kubevision-$svc:$TAG"); done
 
 for target in "$@"; do
   echo "==> $target"
   # One stream for all images, so shared base layers are sent once per node.
   docker save "${images[@]}" | gzip -1 | ssh "${ssh_opts[@]}" "$target" \
     'gunzip | sudo k3s ctr -n k8s.io images import -'
-  ssh "${ssh_opts[@]}" "$target" "sudo k3s ctr -n k8s.io images ls -q | grep kubebalancer"
+  ssh "${ssh_opts[@]}" "$target" "sudo k3s ctr -n k8s.io images ls -q | grep kubevision"
 done

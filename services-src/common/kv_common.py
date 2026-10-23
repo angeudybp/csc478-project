@@ -1,4 +1,4 @@
-"""Shared plumbing for the KubeBalancer services.
+"""Shared plumbing for the KubeVision services.
 
 Every service gets the same error envelope (M1 report §4), X-Request-Id
 propagation for tracing one upload through all logs (§3.4), and the

@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY metrics-sidecar/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY common/kb_common.py metrics-sidecar/exporter.py ./
+COPY common/kv_common.py metrics-sidecar/exporter.py ./
 RUN useradd --uid 10001 --no-create-home app
 USER 10001
 EXPOSE 9100

@@ -1,24 +1,24 @@
 # Deployments, pods and Services (kubectl get deploy,pods,svc)
-# cluster: minikube   captured: 2026-10-23T04:49:16Z
+# cluster: minikube   captured: 2026-10-23T19:07:52Z
 
 $ kubectl -n imgpipe get deploy,pods,svc -o wide
-NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                                SELECTOR
-deployment.apps/gateway      1/1     1            1           44m   gateway                      ghcr.io/angeudybp/kubebalancer-gateway:0.2.0                                                          app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
-deployment.apps/inference    3/3     3            3           44m   inference,metrics-exporter   ghcr.io/angeudybp/kubebalancer-inference:0.2.0,ghcr.io/angeudybp/kubebalancer-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
-deployment.apps/preprocess   2/2     2            2           44m   preprocess                   ghcr.io/angeudybp/kubebalancer-preprocess:0.2.0                                                       app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
-deployment.apps/storage      1/1     1            1           44m   storage                      ghcr.io/angeudybp/kubebalancer-storage:0.2.0                                                          app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                            SELECTOR
+deployment.apps/gateway      1/1     1            1           17s   gateway                      ghcr.io/angeudybp/kubevision-gateway:0.2.0                                                        app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+deployment.apps/inference    3/3     3            3           17s   inference,metrics-exporter   ghcr.io/angeudybp/kubevision-inference:0.2.0,ghcr.io/angeudybp/kubevision-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+deployment.apps/preprocess   2/2     2            2           17s   preprocess                   ghcr.io/angeudybp/kubevision-preprocess:0.2.0                                                     app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+deployment.apps/storage      1/1     1            1           17s   storage                      ghcr.io/angeudybp/kubevision-storage:0.2.0                                                        app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision
 
-NAME                             READY   STATUS    RESTARTS   AGE     IP            NODE       NOMINATED NODE   READINESS GATES
-pod/gateway-b85554b77-6qss7      1/1     Running   0          3m32s   10.244.0.63   minikube   <none>           <none>
-pod/inference-65d9f64cb7-fsrln   2/2     Running   0          3m32s   10.244.0.64   minikube   <none>           <none>
-pod/inference-65d9f64cb7-m898h   2/2     Running   0          3m31s   10.244.0.65   minikube   <none>           <none>
-pod/inference-65d9f64cb7-zzzbv   2/2     Running   0          3m29s   10.244.0.66   minikube   <none>           <none>
-pod/preprocess-884ff4686-drsxn   1/1     Running   0          44m     10.244.0.55   minikube   <none>           <none>
-pod/preprocess-884ff4686-fdsdv   1/1     Running   0          44m     10.244.0.54   minikube   <none>           <none>
-pod/storage-7755f68d4b-5jbgg     1/1     Running   0          44m     10.244.0.59   minikube   <none>           <none>
+NAME                             READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+pod/gateway-84b58b65bb-jb2v7     1/1     Running   0          17s   10.244.0.84   minikube   <none>           <none>
+pod/inference-789b7c667b-94wv5   2/2     Running   0          17s   10.244.0.87   minikube   <none>           <none>
+pod/inference-789b7c667b-96rvs   2/2     Running   0          17s   10.244.0.88   minikube   <none>           <none>
+pod/inference-789b7c667b-pwr59   2/2     Running   0          17s   10.244.0.89   minikube   <none>           <none>
+pod/preprocess-9f76f8758-gq8v5   1/1     Running   0          17s   10.244.0.86   minikube   <none>           <none>
+pod/preprocess-9f76f8758-lpcm5   1/1     Running   0          17s   10.244.0.85   minikube   <none>           <none>
+pod/storage-6994967474-xkr5k     1/1     Running   0          17s   10.244.0.90   minikube   <none>           <none>
 
 NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)             AGE   SELECTOR
-service/gateway-svc      NodePort    10.103.101.90    <none>        8080:30080/TCP      44m   app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
-service/inference-svc    ClusterIP   10.105.194.221   <none>        8082/TCP,9100/TCP   44m   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
-service/preprocess-svc   ClusterIP   10.108.46.98     <none>        8081/TCP            44m   app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
-service/storage-svc      ClusterIP   10.103.96.118    <none>        8083/TCP            44m   app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+service/gateway-svc      NodePort    10.99.242.197    <none>        8080:30080/TCP      17s   app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubevision
+service/inference-svc    ClusterIP   10.106.114.142   <none>        8082/TCP,9100/TCP   17s   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubevision
+service/preprocess-svc   ClusterIP   10.106.116.200   <none>        8081/TCP            17s   app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubevision
+service/storage-svc      ClusterIP   10.101.44.1      <none>        8083/TCP            17s   app.kubernetes.io/component=storage,app.kubernetes.io/name=kubevision

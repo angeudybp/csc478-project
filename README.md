@@ -1,10 +1,13 @@
-# KubeBalancer --- Image Classification Pipeline on Kubernetes
+# KubeVision --- Image Classification Pipeline on Kubernetes
 
 CSC 478 (Cloud Engineering) course project. A four-service image classification pipeline on
 Kubernetes: upload an image to one public endpoint, get back a predicted label from MobileNetV2,
 and retrieve the original image, the processed image, and the prediction afterwards by ID.
 It is deployed on a 3-node k3s cluster on [FABRIC](https://portal.fabric-testbed.net) and
 developed locally on Minikube.
+
+> **Name:** the project is **KubeVision**. The Milestone 1 report was submitted under the earlier
+> name KubeBalancer; the design it describes is the same.
 
 ## Status
 
@@ -132,19 +135,19 @@ deployment.apps/preprocess   2/2     2            2           preprocess
 deployment.apps/storage      1/1     1            1           storage
 
 NAME                             READY   STATUS    RESTARTS   AGE
-pod/gateway-b85554b77-6qss7      1/1     Running   0          3m32s
-pod/inference-65d9f64cb7-fsrln   2/2     Running   0          3m32s
-pod/inference-65d9f64cb7-m898h   2/2     Running   0          3m31s
-pod/inference-65d9f64cb7-zzzbv   2/2     Running   0          3m29s
-pod/preprocess-884ff4686-drsxn   1/1     Running   0          44m
-pod/preprocess-884ff4686-fdsdv   1/1     Running   0          44m
-pod/storage-7755f68d4b-5jbgg     1/1     Running   0          44m
+pod/gateway-84b58b65bb-jb2v7     1/1     Running   0          17s
+pod/inference-789b7c667b-94wv5   2/2     Running   0          17s
+pod/inference-789b7c667b-96rvs   2/2     Running   0          17s
+pod/inference-789b7c667b-pwr59   2/2     Running   0          17s
+pod/preprocess-9f76f8758-gq8v5   1/1     Running   0          17s
+pod/preprocess-9f76f8758-lpcm5   1/1     Running   0          17s
+pod/storage-6994967474-xkr5k     1/1     Running   0          17s
 
 NAME                     TYPE        CLUSTER-IP       PORT(S)
-service/gateway-svc      NodePort    10.103.101.90    8080:30080/TCP
-service/inference-svc    ClusterIP   10.105.194.221   8082/TCP,9100/TCP
-service/preprocess-svc   ClusterIP   10.108.46.98     8081/TCP
-service/storage-svc      ClusterIP   10.103.96.118    8083/TCP
+service/gateway-svc      NodePort    10.99.242.197    8080:30080/TCP
+service/inference-svc    ClusterIP   10.106.114.142   8082/TCP,9100/TCP
+service/preprocess-svc   ClusterIP   10.106.116.200   8081/TCP
+service/storage-svc      ClusterIP   10.101.44.1      8083/TCP
 ```
 
 **Scaling** ([`02-scaling.txt`](docs/evidence/m2/minikube/02-scaling.txt)): inference scaled from
@@ -163,28 +166,28 @@ inference   3/3     3            3
 ```
 
 **Self-healing** ([`03-self-healing.txt`](docs/evidence/m2/minikube/03-self-healing.txt)): one
-inference pod deleted while uploads ran every 0.25 s. The ReplicaSet created `vxts5` immediately
+inference pod deleted while uploads ran every 0.25 s. The ReplicaSet created `2v9rs` immediately
 and it was `2/2 Running` within 2 s; **all 73 uploads during the deletion returned 200**.
 
 ```
-$ kubectl -n imgpipe delete pod inference-65d9f64cb7-gxtl5
+$ kubectl -n imgpipe delete pod inference-789b7c667b-777c4
 $ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference --watch
 NAME                         READY   STATUS              RESTARTS   AGE
-inference-65d9f64cb7-gxtl5   2/2     Terminating         0          8s
-inference-65d9f64cb7-lngzv   2/2     Running             0          8s
-inference-65d9f64cb7-vxts5   0/2     ContainerCreating   0          0s
-inference-65d9f64cb7-zzzbv   2/2     Running             0          3m38s
-inference-65d9f64cb7-vxts5   1/2     Running             0          2s
-inference-65d9f64cb7-vxts5   2/2     Running             0          2s
+inference-789b7c667b-2v9rs   0/2     ContainerCreating   0          0s
+inference-789b7c667b-777c4   2/2     Terminating         0          8s
+inference-789b7c667b-hwsvf   2/2     Running             0          8s
+inference-789b7c667b-pwr59   2/2     Running             0          26s
+inference-789b7c667b-2v9rs   1/2     Running             0          2s
+inference-789b7c667b-2v9rs   2/2     Running             0          2s
 ```
 
 **Also captured:**
 
 | Check | Result | File |
 |---|---|---|
-| Inference scaled to 0 (T8) | Gateway answers `503 UPSTREAM_UNAVAILABLE` in 2.05 s instead of hanging; 200 again after scaling back | [`04-scale-to-zero.txt`](docs/evidence/m2/minikube/04-scale-to-zero.txt) |
-| Load balancing, 30 uploads 10 at a time (T10, T13) | All 200; served 7 / 14 / 9 by the three replicas; each sidecar's `/metrics` agrees (p50 ≈ 10--15 ms) | [`05-load-balancing.txt`](docs/evidence/m2/minikube/05-load-balancing.txt) |
-| `kubectl delete -f` + `kubectl apply -f` (T12) | Stack back with no manual steps; smoke test 17/17 | [`06-rebuild.txt`](docs/evidence/m2/minikube/06-rebuild.txt) |
+| Inference scaled to 0 (T8) | Gateway answers `503 UPSTREAM_UNAVAILABLE` in 2.01 s instead of hanging; 200 again after scaling back | [`04-scale-to-zero.txt`](docs/evidence/m2/minikube/04-scale-to-zero.txt) |
+| Load balancing, 30 uploads 10 at a time (T10, T13) | All 200; served 12 / 10 / 8 by the three replicas; each sidecar's `/metrics` agrees (p50 ≈ 9--10 ms) | [`05-load-balancing.txt`](docs/evidence/m2/minikube/05-load-balancing.txt) |
+| `kubectl delete -f` + `kubectl apply -f` (T12) | Stack back with no manual steps; smoke test 18/18 | [`06-rebuild.txt`](docs/evidence/m2/minikube/06-rebuild.txt) |
 
 ## Sidecar rationale
 
@@ -208,9 +211,10 @@ Uploads made by the scripts carry `source=test`, so the web UI lists only real u
 | M1 design | M2 implementation | Why |
 |---|---|---|
 | Single-node Minikube | 3-node k3s on FABRIC (Minikube kept for development) | The course deploys on FABRIC; more than one node also makes replica spreading and self-healing visible |
-| Images loaded with `minikube image load` | Images on GHCR (`ghcr.io/angeudybp/kubebalancer-*:0.2.0`); `fabric/load-images.sh` as fallback | FABRIC nodes need a registry |
+| Images loaded with `minikube image load` | Images on GHCR (`ghcr.io/angeudybp/kubevision-*:0.2.0`); `fabric/load-images.sh` as fallback | FABRIC nodes need a registry |
 | Mock inference in M2, real model in M3 | Real MobileNetV2 (`mobilenetv2-12`, ONNX Model Zoo) already in M2; `MOCK_MODE=1` kept for unit tests | Ahead of schedule: real labels make the demo meaningful |
 | No UI | React web UI served by the gateway at `/` | Easier demonstration; still one external Service |
+| Project name KubeBalancer | KubeVision | The system classifies images; the name now says so |
 | Storage on a PVC | `emptyDir`; data is lost when the storage pod is replaced | Persistence is M3 scope; only the volume definition changes |
 | Resource limits (§3.7) | Not set yet | Planned for M3 |
 | Gateway → inference timeout 15 s | Plus a 2 s connect timeout | A Service with no endpoints dropped connections, so a scaled-to-zero tier took 15 s to fail; it now fails in about 2 s |

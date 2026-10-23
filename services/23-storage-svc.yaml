@@ -5,12 +5,12 @@ metadata:
   name: storage-svc
   namespace: imgpipe
   labels:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision
     app.kubernetes.io/component: storage
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision
     app.kubernetes.io/component: storage
   ports:
     - name: http

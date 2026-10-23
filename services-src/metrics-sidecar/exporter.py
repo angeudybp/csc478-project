@@ -16,7 +16,7 @@ from pathlib import Path
 
 from fastapi.responses import PlainTextResponse
 
-from kb_common import create_app
+from kv_common import create_app
 
 REQUEST_LOG = Path(os.getenv("REQUEST_LOG", "/var/log/app/requests.jsonl"))
 POD_NAME = os.getenv("POD_NAME", "unknown")

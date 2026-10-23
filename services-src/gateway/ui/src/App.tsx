@@ -86,7 +86,7 @@ export default function App() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-white shadow-soft">
             <ApertureIcon width={20} height={20} />
           </span>
-          <span className="text-lg font-semibold tracking-tight">KubeBalancer</span>
+          <span className="text-lg font-semibold tracking-tight">KubeVision</span>
         </a>
         <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted shadow-soft">
           <span className="relative flex h-2 w-2">

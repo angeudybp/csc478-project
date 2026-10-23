@@ -1,7 +1,7 @@
-# Everything in KubeBalancer lives in one namespace, so `kubectl delete -f` cleans up completely.
+# Everything in KubeVision lives in one namespace, so `kubectl delete -f` cleans up completely.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: imgpipe
   labels:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision

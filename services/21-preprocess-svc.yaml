@@ -5,12 +5,12 @@ metadata:
   name: preprocess-svc
   namespace: imgpipe
   labels:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision
     app.kubernetes.io/component: preprocess
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/name: kubevision
     app.kubernetes.io/component: preprocess
   ports:
     - name: http

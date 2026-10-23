@@ -19,7 +19,7 @@ from fastapi import File, Form, Query, Request, UploadFile
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from kb_common import REQUEST_ID_HEADER, ApiError, create_app, request_id
+from kv_common import REQUEST_ID_HEADER, ApiError, create_app, request_id
 
 PREPROCESS_URL = os.getenv("PREPROCESS_URL", "http://preprocess-svc:8081")
 INFERENCE_URL = os.getenv("INFERENCE_URL", "http://inference-svc:8082")
