@@ -3,12 +3,12 @@
 CSC 478 (Cloud Engineering) course project. A four-service image classification pipeline on
 Kubernetes: upload an image to one public endpoint, get back a predicted label from MobileNetV2,
 and retrieve the original image, the processed image, and the prediction afterwards by ID.
-It is deployed on a 3-node k3s cluster on [FABRIC](https://portal.fabric-testbed.net) and
+It is deployed on a 3-node RKE2 cluster on [FABRIC](https://portal.fabric-testbed.net) and
 developed locally on Minikube.
 
 > **Name:** the project is **KubeVision**. The Milestone 1 report was submitted under the earlier
 > name KubeBalancer. It has since been revised (October 23, 2026) to use the new name, an overview
-> that matches the classification premise, and k3s on FABRIC as the deployment target; the
+> that matches the classification premise, and RKE2 on FABRIC as the deployment target; the
 > architecture it describes is otherwise unchanged.
 
 ## Status
@@ -42,7 +42,7 @@ deployments/         Namespace and the four Deployments (00-namespace.yaml, 10-1
 services/            The four Services (20-23-*-svc.yaml)
 services-src/        Source and Dockerfile for each service; gateway/ui/ is the React web UI
 scripts/             build-images.sh, smoke.sh (API tests), evidence.sh (operational evidence)
-fabric/              FABRIC deployment: slice notebook, k3s install, image fallback (see fabric/README.md)
+fabric/              FABRIC deployment: runbook notebook, course Ansible templates, image fallback (see fabric/README.md)
 docs/evidence/m2/    Captured command output, per cluster (minikube/, fabric/)
 docs/report/         Milestone reports: Word source (.docx) and submitted PDF
 docs/diagrams/       Mermaid diagram sources (.mmd) and rendered diagrams in out/
@@ -70,9 +70,10 @@ The images must be available to the cluster first.
 ### On FABRIC (the submitted deployment)
 
 Publish the images to GHCR (`scripts/build-images.sh --push`, then make the packages public), then
-run [`fabric/create-slice.ipynb`](fabric/create-slice.ipynb) in FABRIC JupyterHub. It creates three
-VMs on a private network, installs k3s (one server, two agents), runs the `kubectl apply` above,
-and runs the smoke test. Step-by-step walkthrough: [`fabric/MIGRATION.md`](fabric/MIGRATION.md);
+run the runbook [`fabric/kubevision.ipynb`](fabric/kubevision.ipynb) in the course's local FABRIC
+environment. It creates three VMs on a private network, installs RKE2 (one server, two agents) with
+the course's Ansible playbooks, runs the `kubectl apply` above, runs the smoke test, and opens an SSH
+tunnel to the gateway. Step-by-step walkthrough: [`fabric/MIGRATION.md`](fabric/MIGRATION.md);
 reference and troubleshooting: [`fabric/README.md`](fabric/README.md).
 
 ### On Minikube (local development)
@@ -87,12 +88,12 @@ kubectl -n imgpipe rollout status deploy/inference
 ## Access the external Service
 
 `gateway-svc` is a **NodePort** Service on port **30080**: the only way into the cluster. Neither
-Minikube nor a bare k3s cluster has a cloud load balancer, so a `LoadBalancer` Service would stay
+Minikube nor an RKE2 cluster on FABRIC has a cloud load balancer, so a `LoadBalancer` Service would stay
 `Pending`. The other three Services are ClusterIP and unreachable from outside.
 
 | Cluster | Gateway URL |
 |---|---|
-| FABRIC | Open an SSH tunnel through the bastion: `ssh -N -L 30080:192.168.10.10:30080 -F ~/fabric_config/ssh_config ubuntu@<k3s-server management IP>` (the notebook prints the exact command), then use **http://localhost:30080** |
+| FABRIC | Run the runbook's tunnel cell (an SSH tunnel through the bastion from the course container to `192.168.1.1:30080`), then use **http://localhost:3000** |
 | Minikube (VM driver, or Docker driver with a routable node IP) | `http://$(minikube ip):30080` |
 | Minikube with Docker Desktop | `minikube service gateway-svc -n imgpipe --url` and keep that terminal open; use the URL it prints |
 
@@ -103,16 +104,16 @@ that served it), and offers both images as downloads named after the label, e.g.
 gallery with the same downloads. Or use the API:
 
 ```bash
-curl -F "file=@dog.jpg" http://localhost:30080/api/v1/images       # classify
-curl http://localhost:30080/api/v1/results/<imageId>                # fetch a stored result
-curl -OJ "http://localhost:30080/api/v1/images/<imageId>?variant=processed&download=1"   # the 224x224 model input
-curl -OJ "http://localhost:30080/api/v1/images/<imageId>?variant=original&download=1"    # the original photo
+curl -F "file=@dog.jpg" http://localhost:3000/api/v1/images       # classify
+curl http://localhost:3000/api/v1/results/<imageId>                # fetch a stored result
+curl -OJ "http://localhost:3000/api/v1/images/<imageId>?variant=processed&download=1"   # the 224x224 model input
+curl -OJ "http://localhost:3000/api/v1/images/<imageId>?variant=original&download=1"    # the original photo
 ```
 
 Run the API test suite (the M2 cases from the M1 test matrix) against any cluster:
 
 ```bash
-GATEWAY_URL=http://localhost:30080 scripts/smoke.sh      # 18 checks
+GATEWAY_URL=http://localhost:3000 scripts/smoke.sh       # 18 checks
 ```
 
 ## Evidence of scaling and self-healing
@@ -215,7 +216,7 @@ reflects the first two rows and the name change.
 
 | M1 design | M2 implementation | Why |
 |---|---|---|
-| Single-node Minikube | 3-node k3s on FABRIC (Minikube kept for development) | The course deploys on FABRIC; more than one node also makes replica spreading and self-healing visible |
+| Single-node Minikube | 3-node RKE2 on FABRIC, built with the course's Ansible playbooks (Minikube kept for development) | The course deploys on FABRIC; more than one node also makes replica spreading and self-healing visible |
 | Images loaded with `minikube image load` | Images on GHCR (`ghcr.io/angeudybp/kubevision-*:0.2.0`); `fabric/load-images.sh` as fallback | FABRIC nodes need a registry |
 | Mock inference in M2, real model in M3 | Real MobileNetV2 (`mobilenetv2-12`, ONNX Model Zoo) already in M2; `MOCK_MODE=1` kept for unit tests | Ahead of schedule: real labels make the demo meaningful |
 | No UI | React web UI served by the gateway at `/` | Easier demonstration; still one external Service |

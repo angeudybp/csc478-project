@@ -13,6 +13,8 @@ set -euo pipefail
 REGISTRY="${REGISTRY:-ghcr.io/angeudybp}"
 TAG="${TAG:-0.2.0}"
 SERVICES=(gateway preprocess inference metrics-sidecar storage)
+# RKE2's bundled containerd client and socket.
+CTR="sudo /var/lib/rancher/rke2/bin/ctr --address /run/k3s/containerd/containerd.sock -n k8s.io"
 
 [[ $# -ge 1 ]] || { echo "usage: $0 <ssh-target> [<ssh-target> ...]" >&2; exit 2; }
 ssh_opts=()
@@ -21,10 +23,11 @@ ssh_opts=()
 images=()
 for svc in "${SERVICES[@]}"; do images+=("$REGISTRY/kubevision-$svc:$TAG"); done
 
+# $CTR is meant to expand here, on this machine, into the command the node runs.
+# shellcheck disable=SC2029
 for target in "$@"; do
   echo "==> $target"
   # One stream for all images, so shared base layers are sent once per node.
-  docker save "${images[@]}" | gzip -1 | ssh "${ssh_opts[@]}" "$target" \
-    'gunzip | sudo k3s ctr -n k8s.io images import -'
-  ssh "${ssh_opts[@]}" "$target" "sudo k3s ctr -n k8s.io images ls -q | grep kubevision"
+  docker save "${images[@]}" | gzip -1 | ssh "${ssh_opts[@]}" "$target" "gunzip | $CTR images import -"
+  ssh "${ssh_opts[@]}" "$target" "$CTR images ls -q | grep kubevision"
 done

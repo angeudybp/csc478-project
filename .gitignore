@@ -26,3 +26,9 @@ node_modules/
 
 # Playwright MCP scratch output
 .playwright-mcp/
+
+# FABRIC runbook output (generated inventory holds the cluster token)
+fabric/playbook/*
+!fabric/playbook/playbook-nfs.yml
+fabric/logs/
+fabric/evidence/

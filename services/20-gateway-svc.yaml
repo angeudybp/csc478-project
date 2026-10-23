@@ -1,5 +1,5 @@
 # gateway-svc: the single external entrypoint.
-# NodePort, not LoadBalancer: neither Minikube nor a bare k3s cluster on FABRIC has a cloud
+# NodePort, not LoadBalancer: neither Minikube nor an RKE2 cluster on FABRIC has a cloud
 # load balancer, so a LoadBalancer Service would stay Pending. Reach it at <node-ip>:30080.
 apiVersion: v1
 kind: Service
