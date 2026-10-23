@@ -16,6 +16,7 @@ from pathlib import Path
 import httpx
 from fastapi import File, Query, Request, UploadFile
 from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from kb_common import REQUEST_ID_HEADER, ApiError, create_app, request_id
 
@@ -23,7 +24,8 @@ PREPROCESS_URL = os.getenv("PREPROCESS_URL", "http://preprocess-svc:8081")
 INFERENCE_URL = os.getenv("INFERENCE_URL", "http://inference-svc:8082")
 STORAGE_URL = os.getenv("STORAGE_URL", "http://storage-svc:8083")
 
-UI_PAGE = Path(__file__).parent / "static" / "index.html"
+# The React UI (gateway/ui/), compiled by the Dockerfile's Node stage into static/.
+UI_DIR = Path(os.getenv("UI_DIR", str(Path(__file__).parent / "static")))
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 MULTIPART_OVERHEAD = 64 * 1024
@@ -201,7 +203,24 @@ async def get_image(image_id: str, request: Request,
     return Response(content=r.content, media_type=r.headers.get("content-type"))
 
 
+# The upload page is served by the gateway, so the UI and the API share one origin and one Service.
+class ImmutableAssets(StaticFiles):
+    """Vite puts a content hash in every asset filename, so a given URL never changes."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+app.mount("/assets", ImmutableAssets(directory=UI_DIR / "assets", check_dir=False), name="assets")
+
+
 @app.get("/", include_in_schema=False)
 async def ui():
-    """The upload page. Served by the gateway, so the UI and the API share one origin and one Service."""
-    return FileResponse(UI_PAGE, media_type="text/html")
+    index = UI_DIR / "index.html"
+    if not index.is_file():
+        raise ApiError(404, "NOT_FOUND", "The UI is not built into this image; the API is still available")
+    # Always revalidate the page: after a redeploy it must point at the new hashed asset files.
+    return FileResponse(index, media_type="text/html", headers={"Cache-Control": "no-cache"})

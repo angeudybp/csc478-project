@@ -169,8 +169,18 @@ def test_request_id_is_returned(client):
     assert r.headers["X-Request-Id"] == r.json()["requestId"]
 
 
-def test_ui_page_is_served_from_the_gateway(client):
+def test_ui_page_is_served_from_the_gateway(client, tmp_path, monkeypatch):
+    (tmp_path / "index.html").write_text("<div id=root></div>")
+    monkeypatch.setattr(gateway, "UI_DIR", tmp_path)
     r = client.get("/")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/html")
-    assert "/api/v1/images" in r.text
+    assert "root" in r.text
+    assert r.headers["cache-control"] == "no-cache"
+
+
+def test_missing_ui_build_is_a_clean_404(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(gateway, "UI_DIR", tmp_path / "nothing")
+    r = client.get("/")
+    assert r.status_code == 404
+    assert r.json()["error"]["code"] == "NOT_FOUND"

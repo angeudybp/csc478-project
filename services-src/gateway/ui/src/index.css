@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light table: cool neutral surfaces, one grease-pencil amber reserved for the request's route. */
+:root {
+  --table: 238 242 245;
+  --sheet: 255 255 255;
+  --frame: 31 38 46;
+  --graphite: 94 105 116;
+  --rule: 211 218 224;
+  --marker: 224 161 0;
+  --marker-ink: 31 38 46;
+  --alert: 180 35 24;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --table: 22 27 33;
+    --sheet: 30 37 45;
+    --frame: 230 235 239;
+    --graphite: 148 160 171;
+    --rule: 46 55 65;
+    --marker: 242 184 41;
+    --marker-ink: 22 27 33;
+    --alert: 255 138 128;
+    color-scheme: dark;
+  }
+}
+
+body {
+  @apply bg-table text-frame font-sans antialiased;
+}
+
+:focus-visible {
+  @apply outline outline-2 outline-offset-2 outline-marker;
+}
+
+/* The one orchestrated moment: when a result arrives, the route lights up hop by hop. */
+@keyframes route-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes stage-in {
+  from { box-shadow: 0 0 0 0 rgb(var(--marker) / 0.6); }
+  to { box-shadow: 0 0 0 6px rgb(var(--marker) / 0); }
+}
+.route-segment {
+  animation: route-in 260ms ease-out both;
+  animation-delay: var(--delay, 0ms);
+}
+.stage-lit {
+  animation: stage-in 500ms ease-out both;
+  animation-delay: var(--delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-segment,
+  .stage-lit {
+    animation: none;
+  }
+}

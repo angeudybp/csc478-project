@@ -3,3 +3,5 @@
 **/test_*.py
 conftest.py
 requirements-dev.txt
+**/node_modules
+**/dist
