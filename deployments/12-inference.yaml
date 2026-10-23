@@ -51,8 +51,9 @@ spec:
             - name: http
               containerPort: 8082
           env:
+            # 0 = real MobileNetV2 (built into the image); 1 = repeatable fake labels.
             - name: MOCK_MODE
-              value: "1"
+              value: "0"
             - name: REQUEST_LOG
               value: /var/log/app/requests.jsonl
             - name: POD_NAME

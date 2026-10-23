@@ -86,6 +86,21 @@ def test_happy_path_runs_all_three_stages(client, upstreams):
     assert json.loads(upstreams.stored[f"/results/{image_id}"])["label"] == "tabby cat"
 
 
+def test_uploads_are_user_uploads_unless_marked_as_tests(client, upstreams):
+    first = upload(client, jpeg_bytes()).json()
+    assert first["source"] == "user"
+    r = client.post("/api/v1/images", files={"file": ("t.jpg", jpeg_bytes(), "image/jpeg")},
+                    data={"source": "test"})
+    assert r.json()["source"] == "test"
+    assert json.loads(upstreams.stored[f"/results/{r.json()['imageId']}"])["source"] == "test"
+
+
+def test_unknown_source_is_400(client):
+    r = client.post("/api/v1/images", files={"file": ("t.jpg", jpeg_bytes(), "image/jpeg")},
+                    data={"source": "admin"})
+    assert r.status_code == 400
+
+
 def test_result_can_be_fetched_back(client):
     image_id = upload(client, jpeg_bytes()).json()["imageId"]
     r = client.get(f"/api/v1/results/{image_id}")

@@ -39,7 +39,7 @@ check() {  # check <id> <description> <expected> <actual> [detail]
 # upload <file> [filename-to-send]  -> prints "<status> <seconds>", body in $WORK/body
 upload() {
   curl -s -m 35 -o "$WORK/body" -w '%{http_code} %{time_total}' \
-    -F "file=@$1${2:+;filename=$2}" "$API/images"
+    -F "file=@$1${2:+;filename=$2}" -F source=test "$API/images"
 }
 
 json() {  # json <file> <python expression on d>
@@ -58,7 +58,9 @@ read -r code secs < <(upload "$WORK/in/sample.png")
 cp "$WORK/body" "$WORK/t1.json"
 id="$(json "$WORK/t1.json" 'd["imageId"]')"
 check T1 "Upload PNG -> prediction" 200 "$code" "($(json "$WORK/t1.json" 'd["label"]'), ${secs}s, pod $(json "$WORK/t1.json" 'd["servedBy"]["inferencePod"]'))"
-check T1 "Response is marked as mock" True "$(json "$WORK/t1.json" 'd["mock"]')"
+# The deployment runs the real model; set EXPECT_MOCK=True when testing with MOCK_MODE=1.
+check T1 "Prediction is real (not mock)" "${EXPECT_MOCK:-False}" "$(json "$WORK/t1.json" 'd["mock"]')" \
+  "($(json "$WORK/t1.json" 'd["modelVersion"]'))"
 
 check T1 "GET /results/{id}" 200 "$(get "$API/results/$id" "$WORK/result.json")"
 check T1 "Stored record matches the response" \

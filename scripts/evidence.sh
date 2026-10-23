@@ -41,7 +41,7 @@ run() {  # run <cmd...>: echo the command like a terminal, then its output
 }
 upload() {  # one upload; prints "<status> <inference pod>"
   local body
-  body="$(curl -s -m 35 -w '\n%{http_code}' -F "file=@$IMAGE" "$GATEWAY_URL/api/v1/images")" || true
+  body="$(curl -s -m 35 -w '\n%{http_code}' -F "file=@$IMAGE" -F source=test "$GATEWAY_URL/api/v1/images")" || true
   local code="${body##*$'\n'}"
   local pod
   pod="$(printf '%s' "${body%$'\n'*}" | sed -n 's/.*"inferencePod":"\([^"]*\)".*/\1/p')"
@@ -102,11 +102,11 @@ step 04-scale-to-zero "Inference scaled to 0: the gateway fails fast with 503, t
 run kubectl -n "$NS" scale deploy/inference --replicas=0
 run kubectl -n "$NS" wait --for=delete pod -l "$INFERENCE" --timeout=90s
 printf '\n$ curl -F file=@sample.png %s/api/v1/images\n' "$GATEWAY_URL" | tee -a "$LOG"
-curl -s -m 35 -w '\nHTTP %{http_code} in %{time_total} s\n' -F "file=@$IMAGE" "$GATEWAY_URL/api/v1/images" | tee -a "$LOG"
+curl -s -m 35 -w '\nHTTP %{http_code} in %{time_total} s\n' -F "file=@$IMAGE" -F source=test "$GATEWAY_URL/api/v1/images" | tee -a "$LOG"
 run kubectl -n "$NS" scale deploy/inference --replicas=3
 run kubectl -n "$NS" rollout status deploy/inference --timeout=120s
 printf '\n$ curl -F file=@sample.png %s/api/v1/images\n' "$GATEWAY_URL" | tee -a "$LOG"
-curl -s -m 35 -o /dev/null -w 'HTTP %{http_code} in %{time_total} s\n' -F "file=@$IMAGE" "$GATEWAY_URL/api/v1/images" | tee -a "$LOG"
+curl -s -m 35 -o /dev/null -w 'HTTP %{http_code} in %{time_total} s\n' -F "file=@$IMAGE" -F source=test "$GATEWAY_URL/api/v1/images" | tee -a "$LOG"
 
 # --- 05: load balancing and concurrency (T10, T13) -----------------------------------------
 step 05-load-balancing "30 uploads, 10 at a time, spread over the inference replicas (T10, T13)"

@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
-from fastapi import File, Query, Request, UploadFile
+from fastapi import File, Form, Query, Request, UploadFile
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
@@ -102,7 +102,9 @@ def upstream_failed(service: str, response: httpx.Response) -> ApiError:
 
 
 @app.post("/api/v1/images")
-async def upload_image(request: Request, file: UploadFile | None = File(default=None)):
+async def upload_image(request: Request, file: UploadFile | None = File(default=None),
+                       source: str = Form(default="user", pattern="^(user|test)$")):
+    """``source=test`` marks uploads made by the test scripts, so the UI can leave them out."""
     started = time.perf_counter()
 
     # 1. Validate.
@@ -162,6 +164,7 @@ async def upload_image(request: Request, file: UploadFile | None = File(default=
         "modelVersion": prediction["modelVersion"],
         "mock": prediction["mock"],
         "filename": file.filename,
+        "source": source,
         "originalSize": {"width": processed["originalWidth"], "height": processed["originalHeight"]},
         "servedBy": {"inferencePod": prediction.get("podName"),
                      "inferenceNode": prediction.get("nodeName")},

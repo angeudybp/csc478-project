@@ -13,6 +13,7 @@ export interface Result {
   modelVersion: string;
   mock: boolean;
   filename?: string;
+  source?: "user" | "test"; // "test" = uploaded by scripts/smoke.sh or evidence.sh
   originalSize?: { width: number; height: number };
   servedBy?: { inferencePod?: string; inferenceNode?: string };
   timings: { preprocessMs: number; inferenceMs: number; storageMs: number; totalMs: number };
@@ -56,11 +57,12 @@ export function uploadImage(file: File, onProgress: (fraction: number) => void):
   });
 }
 
+/** Recent uploads made by people. Uploads from the test scripts are left out. */
 export async function listResults(limit = 50): Promise<Result[]> {
-  const res = await fetch(`/api/v1/results?limit=${limit}`);
+  const res = await fetch("/api/v1/results?limit=100"); // The API maximum; tests are filtered out below.
   const body = await res.json().catch(() => null);
   if (!res.ok) throw toApiError(res.status, body);
-  return (body as { results: Result[] }).results;
+  return (body as { results: Result[] }).results.filter((r) => r.source !== "test").slice(0, limit);
 }
 
 export function imageUrl(imageId: string, variant: "original" | "processed"): string {
