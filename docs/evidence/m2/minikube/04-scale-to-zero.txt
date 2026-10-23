@@ -1,17 +1,17 @@
 # Inference scaled to 0: the gateway fails fast with 503, then recovers (T8)
-# cluster: minikube   captured: 2026-10-23T04:04:18Z
+# cluster: minikube   captured: 2026-10-23T04:49:45Z
 
 $ kubectl -n imgpipe scale deploy/inference --replicas=0
 deployment.apps/inference scaled
 
 $ kubectl -n imgpipe wait --for=delete pod -l app.kubernetes.io/component=inference --timeout=90s
-pod/inference-67b86b486c-tvmfw condition met
-pod/inference-67b86b486c-w6bpz condition met
-pod/inference-67b86b486c-ws9cf condition met
+pod/inference-65d9f64cb7-lngzv condition met
+pod/inference-65d9f64cb7-vxts5 condition met
+pod/inference-65d9f64cb7-zzzbv condition met
 
-$ curl -F file=@sample.png http://127.0.0.1:39297/api/v1/images
-{"error":{"code":"UPSTREAM_UNAVAILABLE","message":"inference is unavailable"},"requestId":"f3b880d7"}
-HTTP 503 in 2.010776 s
+$ curl -F file=@sample.png http://127.0.0.1:41773/api/v1/images
+{"error":{"code":"UPSTREAM_UNAVAILABLE","message":"inference is unavailable"},"requestId":"ddbdc369"}
+HTTP 503 in 2.052802 s
 
 $ kubectl -n imgpipe scale deploy/inference --replicas=3
 deployment.apps/inference scaled
@@ -22,5 +22,5 @@ Waiting for deployment "inference" rollout to finish: 1 of 3 updated replicas ar
 Waiting for deployment "inference" rollout to finish: 2 of 3 updated replicas are available...
 deployment "inference" successfully rolled out
 
-$ curl -F file=@sample.png http://127.0.0.1:39297/api/v1/images
-HTTP 200 in 0.043732 s
+$ curl -F file=@sample.png http://127.0.0.1:41773/api/v1/images
+HTTP 200 in 0.042862 s
