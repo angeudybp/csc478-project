@@ -1,0 +1,21 @@
+# gateway-svc: the single external entrypoint.
+# NodePort, not LoadBalancer: neither Minikube nor a bare k3s cluster on FABRIC has a cloud
+# load balancer, so a LoadBalancer Service would stay Pending. Reach it at <node-ip>:30080.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-svc
+  namespace: imgpipe
+  labels:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: gateway
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      nodePort: 30080

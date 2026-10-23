@@ -1,0 +1,47 @@
+# gateway: the only public entrypoint (exposed by gateway-svc, NodePort 30080).
+# It mostly waits on network calls, so one replica is enough.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: imgpipe
+  labels:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubebalancer
+      app.kubernetes.io/component: gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubebalancer
+        app.kubernetes.io/component: gateway
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: gateway
+          image: ghcr.io/angeudybp/kubebalancer-gateway:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            # Downstream services are found by Service DNS name, never by pod IP.
+            - name: PREPROCESS_URL
+              value: http://preprocess-svc:8081
+            - name: INFERENCE_URL
+              value: http://inference-svc:8082
+            - name: STORAGE_URL
+              value: http://storage-svc:8083
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+            failureThreshold: 3

@@ -1,0 +1,97 @@
+# inference: the scaled tier (3 replicas) and the multi-container pod.
+#
+#   container 1  inference         serves POST /predict on :8082 and appends one JSON line
+#                                   per request to /var/log/app/requests.jsonl
+#   container 2  metrics-exporter  sidecar: tails that file and serves /metrics on :9100
+#
+# The two containers share an emptyDir, which only works inside one pod; each replica
+# therefore reports its own traffic, which shows how the Service spreads requests.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference
+  namespace: imgpipe
+  labels:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: inference
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubebalancer
+      app.kubernetes.io/component: inference
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubebalancer
+        app.kubernetes.io/component: inference
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      # Spread replicas across nodes when there are several (FABRIC). Soft, so a
+      # single-node cluster (Minikube) still schedules all three.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: inference
+      volumes:
+        - name: request-log
+          emptyDir:
+            sizeLimit: 64Mi
+      containers:
+        - name: inference
+          image: ghcr.io/angeudybp/kubebalancer-inference:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8082
+          env:
+            - name: MOCK_MODE
+              value: "1"
+            - name: REQUEST_LOG
+              value: /var/log/app/requests.jsonl
+            - name: POD_NAME
+              valueFrom:
+                fieldRef: { fieldPath: metadata.name }
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef: { fieldPath: spec.nodeName }
+          volumeMounts:
+            - name: request-log
+              mountPath: /var/log/app
+          # Not ready until the model has loaded, so new pods never get traffic too early.
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+        - name: metrics-exporter
+          image: ghcr.io/angeudybp/kubebalancer-metrics-sidecar:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 9100
+          env:
+            - name: REQUEST_LOG
+              value: /var/log/app/requests.jsonl
+            - name: POD_NAME
+              valueFrom:
+                fieldRef: { fieldPath: metadata.name }
+          volumeMounts:
+            - name: request-log
+              mountPath: /var/log/app
+              readOnly: true
+          readinessProbe:
+            httpGet: { path: /readyz, port: metrics }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: metrics }
+            periodSeconds: 10
+            failureThreshold: 3

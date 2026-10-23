@@ -1,0 +1,55 @@
+# storage: the only stateful service. Exactly one replica, so there is a single writer.
+#
+# Milestone 2: /data is an emptyDir -- data survives container restarts but is lost when the
+# pod is deleted. Milestone 3 swaps the volume below for the storage-data-pvc claim; Recreate is
+# already set because a ReadWriteOnce volume cannot be attached to two pods during a rolling update.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage
+  namespace: imgpipe
+  labels:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: storage
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubebalancer
+      app.kubernetes.io/component: storage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubebalancer
+        app.kubernetes.io/component: storage
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      volumes:
+        - name: data
+          emptyDir:
+            sizeLimit: 1Gi
+      containers:
+        - name: storage
+          image: ghcr.io/angeudybp/kubebalancer-storage:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8083
+          env:
+            - name: DATA_DIR
+              value: /data
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+            failureThreshold: 3

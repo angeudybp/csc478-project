@@ -1,0 +1,38 @@
+# preprocess: CPU-bound image resizing. Two replicas so one pod failing never stops uploads.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preprocess
+  namespace: imgpipe
+  labels:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: preprocess
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubebalancer
+      app.kubernetes.io/component: preprocess
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubebalancer
+        app.kubernetes.io/component: preprocess
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: preprocess
+          image: ghcr.io/angeudybp/kubebalancer-preprocess:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+            failureThreshold: 3

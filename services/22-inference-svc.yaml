@@ -1,0 +1,23 @@
+# inference-svc: internal only; balances predictions across the 3 inference replicas.
+# Port 9100 exposes the sidecar's /metrics. Through the Service it hits a random replica;
+# use `kubectl port-forward pod/<name> 9100` to read one specific replica.
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference-svc
+  namespace: imgpipe
+  labels:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: inference
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kubebalancer
+    app.kubernetes.io/component: inference
+  ports:
+    - name: http
+      port: 8082
+      targetPort: http
+    - name: metrics
+      port: 9100
+      targetPort: metrics
