@@ -1,0 +1,54 @@
+# Deleting an inference pod while traffic flows (T9)
+# cluster: minikube   captured: 2026-10-23T04:03:56Z
+
+Background traffic: one upload every 0.25 s while the pod is deleted and replaced.
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide
+NAME                         READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+inference-67b86b486c-rxcrg   2/2     Running   0          8s    10.244.0.48   minikube   <none>           <none>
+inference-67b86b486c-tvmfw   2/2     Running   0          8s    10.244.0.47   minikube   <none>           <none>
+inference-67b86b486c-w6bpz   2/2     Running   0          45s   10.244.0.44   minikube   <none>           <none>
+
+$ kubectl -n imgpipe delete pod inference-67b86b486c-rxcrg --wait=false
+pod "inference-67b86b486c-rxcrg" deleted from imgpipe namespace
+
+Watching the ReplicaSet replace it (20 s):
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide --watch
+NAME                         READY   STATUS              RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+inference-67b86b486c-rxcrg   2/2     Terminating         0          8s    10.244.0.48   minikube   <none>           <none>
+inference-67b86b486c-tvmfw   2/2     Running             0          8s    10.244.0.47   minikube   <none>           <none>
+inference-67b86b486c-w6bpz   2/2     Running             0          45s   10.244.0.44   minikube   <none>           <none>
+inference-67b86b486c-ws9cf   0/2     ContainerCreating   0          0s    <none>        minikube   <none>           <none>
+inference-67b86b486c-rxcrg   0/2     Completed           0          8s    10.244.0.48   minikube   <none>           <none>
+inference-67b86b486c-ws9cf   0/2     ContainerCreating   0          1s    <none>        minikube   <none>           <none>
+inference-67b86b486c-ws9cf   0/2     Running             0          1s    10.244.0.49   minikube   <none>           <none>
+inference-67b86b486c-rxcrg   0/2     Completed           0          9s    10.244.0.48   minikube   <none>           <none>
+inference-67b86b486c-rxcrg   0/2     Completed           0          9s    10.244.0.48   minikube   <none>           <none>
+inference-67b86b486c-ws9cf   1/2     Running             0          1s    10.244.0.49   minikube   <none>           <none>
+inference-67b86b486c-ws9cf   2/2     Running             0          2s    10.244.0.49   minikube   <none>           <none>
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=120s
+deployment "inference" successfully rolled out
+
+$ kubectl -n imgpipe get pods -l app.kubernetes.io/component=inference -o wide
+NAME                         READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+inference-67b86b486c-tvmfw   2/2     Running   0          28s   10.244.0.47   minikube   <none>           <none>
+inference-67b86b486c-w6bpz   2/2     Running   0          65s   10.244.0.44   minikube   <none>           <none>
+inference-67b86b486c-ws9cf   2/2     Running   0          20s   10.244.0.49   minikube   <none>           <none>
+
+Uploads during the deletion, by HTTP status:
+     73 200
+
+$ kubectl -n imgpipe get events --field-selector reason=SuccessfulCreate --sort-by=.lastTimestamp
+LAST SEEN   TYPE     REASON             OBJECT                            MESSAGE
+66s         Normal   SuccessfulCreate   replicaset/gateway-7689c8bb54     Created pod: gateway-7689c8bb54-k7m5v
+65s         Normal   SuccessfulCreate   replicaset/inference-67b86b486c   Created pod: inference-67b86b486c-2vnvd
+65s         Normal   SuccessfulCreate   replicaset/inference-67b86b486c   Created pod: inference-67b86b486c-nm2c5
+65s         Normal   SuccessfulCreate   replicaset/inference-67b86b486c   Created pod: inference-67b86b486c-w6bpz
+65s         Normal   SuccessfulCreate   replicaset/preprocess-884ff4686   Created pod: preprocess-884ff4686-sld5z
+65s         Normal   SuccessfulCreate   replicaset/preprocess-884ff4686   Created pod: preprocess-884ff4686-7xf7k
+65s         Normal   SuccessfulCreate   replicaset/storage-7755f68d4b     Created pod: storage-7755f68d4b-gzdks
+28s         Normal   SuccessfulCreate   replicaset/inference-67b86b486c   Created pod: inference-67b86b486c-tvmfw
+28s         Normal   SuccessfulCreate   replicaset/inference-67b86b486c   Created pod: inference-67b86b486c-rxcrg
+20s         Normal   SuccessfulCreate   replicaset/inference-67b86b486c   Created pod: inference-67b86b486c-ws9cf

@@ -1,0 +1,42 @@
+# 30 uploads, 10 at a time, spread over the inference replicas (T10, T13)
+# cluster: minikube   captured: 2026-10-23T04:04:27Z
+
+Pods were just recreated in step 04, so each sidecar starts near zero.
+
+$ kubectl -n imgpipe get endpointslices -l kubernetes.io/service-name=inference-svc
+NAME                  ADDRESSTYPE   PORTS       ENDPOINTS                             AGE
+inference-svc-dxxbn   IPv4          9100,8082   10.244.0.50,10.244.0.51,10.244.0.52   77s
+
+HTTP status of the 30 uploads:
+     30 200
+
+Inference pod that served each upload (from the gateway response):
+     11 inference-67b86b486c-htv5s
+     12 inference-67b86b486c-jk8sx
+      7 inference-67b86b486c-srzbh
+
+Each replica's metrics-exporter sidecar, read through kubectl port-forward:
+
+$ kubectl -n imgpipe port-forward pod/inference-67b86b486c-htv5s 19100:9100 & curl localhost:19100/metrics
+inference_requests_total{pod="inference-67b86b486c-htv5s"} 12
+inference_request_errors_total{pod="inference-67b86b486c-htv5s"} 0
+inference_request_latency_ms{pod="inference-67b86b486c-htv5s",quantile="0.5"} 0.033
+inference_request_latency_ms{pod="inference-67b86b486c-htv5s",quantile="0.95"} 0.231
+inference_request_latency_ms_sum{pod="inference-67b86b486c-htv5s"} 0.731
+inference_request_latency_ms_count{pod="inference-67b86b486c-htv5s"} 12
+
+$ kubectl -n imgpipe port-forward pod/inference-67b86b486c-jk8sx 19101:9100 & curl localhost:19101/metrics
+inference_requests_total{pod="inference-67b86b486c-jk8sx"} 12
+inference_request_errors_total{pod="inference-67b86b486c-jk8sx"} 0
+inference_request_latency_ms{pod="inference-67b86b486c-jk8sx",quantile="0.5"} 0.029
+inference_request_latency_ms{pod="inference-67b86b486c-jk8sx",quantile="0.95"} 0.066
+inference_request_latency_ms_sum{pod="inference-67b86b486c-jk8sx"} 0.426
+inference_request_latency_ms_count{pod="inference-67b86b486c-jk8sx"} 12
+
+$ kubectl -n imgpipe port-forward pod/inference-67b86b486c-srzbh 19102:9100 & curl localhost:19102/metrics
+inference_requests_total{pod="inference-67b86b486c-srzbh"} 7
+inference_request_errors_total{pod="inference-67b86b486c-srzbh"} 0
+inference_request_latency_ms{pod="inference-67b86b486c-srzbh",quantile="0.5"} 0.037
+inference_request_latency_ms{pod="inference-67b86b486c-srzbh",quantile="0.95"} 0.056
+inference_request_latency_ms_sum{pod="inference-67b86b486c-srzbh"} 0.291
+inference_request_latency_ms_count{pod="inference-67b86b486c-srzbh"} 7

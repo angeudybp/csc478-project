@@ -1,0 +1,84 @@
+# kubectl delete -f, then kubectl apply -f: the stack comes back with no manual steps (T12)
+# cluster: minikube   captured: 2026-10-23T04:04:31Z
+
+$ kubectl delete -f /home/angeudybp/Desktop/CSC 478/Project/deployments/ -f /home/angeudybp/Desktop/CSC 478/Project/services/ --wait=true
+namespace "imgpipe" deleted
+deployment.apps "gateway" deleted from imgpipe namespace
+deployment.apps "preprocess" deleted from imgpipe namespace
+deployment.apps "inference" deleted from imgpipe namespace
+deployment.apps "storage" deleted from imgpipe namespace
+service "gateway-svc" deleted from imgpipe namespace
+service "preprocess-svc" deleted from imgpipe namespace
+service "inference-svc" deleted from imgpipe namespace
+service "storage-svc" deleted from imgpipe namespace
+
+$ kubectl apply -f /home/angeudybp/Desktop/CSC 478/Project/deployments/ -f /home/angeudybp/Desktop/CSC 478/Project/services/
+namespace/imgpipe created
+deployment.apps/gateway created
+deployment.apps/preprocess created
+deployment.apps/inference created
+deployment.apps/storage created
+service/gateway-svc created
+service/preprocess-svc created
+service/inference-svc created
+service/storage-svc created
+
+$ kubectl -n imgpipe rollout status deploy/gateway --timeout=180s
+Waiting for deployment "gateway" rollout to finish: 0 of 1 updated replicas are available...
+deployment "gateway" successfully rolled out
+
+$ kubectl -n imgpipe rollout status deploy/preprocess --timeout=180s
+deployment "preprocess" successfully rolled out
+
+$ kubectl -n imgpipe rollout status deploy/inference --timeout=180s
+deployment "inference" successfully rolled out
+
+$ kubectl -n imgpipe rollout status deploy/storage --timeout=180s
+deployment "storage" successfully rolled out
+
+$ kubectl -n imgpipe get deploy,pods,svc -o wide
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                                SELECTOR
+deployment.apps/gateway      1/1     1            1           1s    gateway                      ghcr.io/angeudybp/kubebalancer-gateway:0.2.0                                                          app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
+deployment.apps/inference    3/3     3            3           1s    inference,metrics-exporter   ghcr.io/angeudybp/kubebalancer-inference:0.2.0,ghcr.io/angeudybp/kubebalancer-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
+deployment.apps/preprocess   2/2     2            2           1s    preprocess                   ghcr.io/angeudybp/kubebalancer-preprocess:0.2.0                                                       app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
+deployment.apps/storage      1/1     1            1           1s    storage                      ghcr.io/angeudybp/kubebalancer-storage:0.2.0                                                          app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+
+NAME                             READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+pod/gateway-7689c8bb54-vhcq4     1/1     Running   0          1s    10.244.0.53   minikube   <none>           <none>
+pod/inference-67b86b486c-bmzld   2/2     Running   0          1s    10.244.0.58   minikube   <none>           <none>
+pod/inference-67b86b486c-jt8db   2/2     Running   0          1s    10.244.0.56   minikube   <none>           <none>
+pod/inference-67b86b486c-srk8w   2/2     Running   0          1s    10.244.0.57   minikube   <none>           <none>
+pod/preprocess-884ff4686-drsxn   1/1     Running   0          1s    10.244.0.55   minikube   <none>           <none>
+pod/preprocess-884ff4686-fdsdv   1/1     Running   0          1s    10.244.0.54   minikube   <none>           <none>
+pod/storage-7755f68d4b-5jbgg     1/1     Running   0          1s    10.244.0.59   minikube   <none>           <none>
+
+NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)             AGE   SELECTOR
+service/gateway-svc      NodePort    10.103.101.90    <none>        8080:30080/TCP      1s    app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
+service/inference-svc    ClusterIP   10.105.194.221   <none>        8082/TCP,9100/TCP   1s    app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
+service/preprocess-svc   ClusterIP   10.108.46.98     <none>        8081/TCP            1s    app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
+service/storage-svc      ClusterIP   10.103.96.118    <none>        8083/TCP            1s    app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+
+First successful upload 2 s after all Deployments reported ready.
+
+Smoke test against the rebuilt stack:
+Gateway: http://127.0.0.1:18080
+
+PASS  T1   Upload PNG -> prediction                     200 (sports car, 0.023987s, pod inference-67b86b486c-jt8db)
+PASS  T1   Response is marked as mock                   True 
+PASS  T1   GET /results/{id}                            200 
+PASS  T1   Stored record matches the response           sports car 
+PASS  T1   Original image is returned byte-for-byte     yes 
+PASS  T1   GET processed 224x224 image                  200 
+PASS  T1   Upload JPEG -> prediction                    200 (0.020584s)
+PASS  T2   12 MB upload rejected                        413 (PAYLOAD_TOO_LARGE)
+PASS  T3   7.5 MB upload accepted                       200 (0.115107s)
+PASS  T3   ...within 30 s                               yes 
+PASS  T4   Text file named .jpg rejected                415 (UNSUPPORTED_MEDIA_TYPE)
+PASS  T5   GIF rejected                                 415 
+PASS  T5   SVG rejected                                 415 
+PASS  T6   Empty file rejected                          400 (EMPTY_UPLOAD)
+PASS  T6   Missing file field rejected                  400 
+PASS  T7   Unknown imageId                              404 
+PASS  UI   GET / serves the upload page                 200 
+
+17 passed, 0 failed

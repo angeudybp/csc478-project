@@ -1,0 +1,24 @@
+# Deployments, pods and Services (kubectl get deploy,pods,svc)
+# cluster: minikube   captured: 2026-10-23T04:03:49Z
+
+$ kubectl -n imgpipe get deploy,pods,svc -o wide
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                   IMAGES                                                                                                SELECTOR
+deployment.apps/gateway      1/1     1            1           37s   gateway                      ghcr.io/angeudybp/kubebalancer-gateway:0.2.0                                                          app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
+deployment.apps/inference    3/3     3            3           37s   inference,metrics-exporter   ghcr.io/angeudybp/kubebalancer-inference:0.2.0,ghcr.io/angeudybp/kubebalancer-metrics-sidecar:0.2.0   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
+deployment.apps/preprocess   2/2     2            2           37s   preprocess                   ghcr.io/angeudybp/kubebalancer-preprocess:0.2.0                                                       app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
+deployment.apps/storage      1/1     1            1           36s   storage                      ghcr.io/angeudybp/kubebalancer-storage:0.2.0                                                          app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
+
+NAME                             READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+pod/gateway-7689c8bb54-k7m5v     1/1     Running   0          37s   10.244.0.40   minikube   <none>           <none>
+pod/inference-67b86b486c-2vnvd   2/2     Running   0          36s   10.244.0.43   minikube   <none>           <none>
+pod/inference-67b86b486c-nm2c5   2/2     Running   0          36s   10.244.0.45   minikube   <none>           <none>
+pod/inference-67b86b486c-w6bpz   2/2     Running   0          36s   10.244.0.44   minikube   <none>           <none>
+pod/preprocess-884ff4686-7xf7k   1/1     Running   0          36s   10.244.0.42   minikube   <none>           <none>
+pod/preprocess-884ff4686-sld5z   1/1     Running   0          37s   10.244.0.41   minikube   <none>           <none>
+pod/storage-7755f68d4b-gzdks     1/1     Running   0          36s   10.244.0.46   minikube   <none>           <none>
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE   SELECTOR
+service/gateway-svc      NodePort    10.105.246.92   <none>        8080:30080/TCP      36s   app.kubernetes.io/component=gateway,app.kubernetes.io/name=kubebalancer
+service/inference-svc    ClusterIP   10.103.160.49   <none>        8082/TCP,9100/TCP   36s   app.kubernetes.io/component=inference,app.kubernetes.io/name=kubebalancer
+service/preprocess-svc   ClusterIP   10.102.255.71   <none>        8081/TCP            36s   app.kubernetes.io/component=preprocess,app.kubernetes.io/name=kubebalancer
+service/storage-svc      ClusterIP   10.100.6.150    <none>        8083/TCP            36s   app.kubernetes.io/component=storage,app.kubernetes.io/name=kubebalancer
