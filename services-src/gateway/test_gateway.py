@@ -167,3 +167,10 @@ def test_unknown_result_is_404(client):
 def test_request_id_is_returned(client):
     r = upload(client, b"text", name="a.txt")
     assert r.headers["X-Request-Id"] == r.json()["requestId"]
+
+
+def test_ui_page_is_served_from_the_gateway(client):
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/html")
+    assert "/api/v1/images" in r.text

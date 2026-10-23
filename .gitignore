@@ -23,3 +23,6 @@ node_modules/
 
 # Note: docs/report/*.pdf, *.docx and docs/diagrams/out/*.pdf ARE tracked on purpose --
 # the submitted artifact should be pinned to the commit that produced it.
+
+# Playwright MCP scratch output
+.playwright-mcp/

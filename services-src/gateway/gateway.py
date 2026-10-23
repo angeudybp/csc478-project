@@ -11,16 +11,19 @@ import secrets
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
 
 import httpx
 from fastapi import File, Query, Request, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 
 from kb_common import REQUEST_ID_HEADER, ApiError, create_app, request_id
 
 PREPROCESS_URL = os.getenv("PREPROCESS_URL", "http://preprocess-svc:8081")
 INFERENCE_URL = os.getenv("INFERENCE_URL", "http://inference-svc:8082")
 STORAGE_URL = os.getenv("STORAGE_URL", "http://storage-svc:8083")
+
+UI_PAGE = Path(__file__).parent / "static" / "index.html"
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 MULTIPART_OVERHEAD = 64 * 1024
@@ -196,3 +199,9 @@ async def get_image(image_id: str, request: Request,
                     variant: str = Query(default="original", pattern="^(original|processed)$")):
     r = await _from_storage(request, f"/objects/{image_id}/{variant}")
     return Response(content=r.content, media_type=r.headers.get("content-type"))
+
+
+@app.get("/", include_in_schema=False)
+async def ui():
+    """The upload page. Served by the gateway, so the UI and the API share one origin and one Service."""
+    return FileResponse(UI_PAGE, media_type="text/html")
